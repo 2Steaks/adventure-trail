@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -7,13 +7,13 @@ Blocked by: none
 **Description:** Add `authCredentialsSchema` (`{ email, password }`) to `src/lib/schemas/auth.ts`, used by both the register and login Route Handlers to validate request bodies before ever calling Supabase.
 
 **Acceptance criteria:**
-- [ ] Valid email + password (>= 6 chars) passes
-- [ ] Invalid email format fails
-- [ ] Password under 6 chars fails
-- [ ] Test written first, observed failing before the schema existed
+- [x] Valid email + password (>= 6 chars) passes
+- [x] Invalid email format fails
+- [x] Password under 6 chars fails
+- [x] Test written first, observed failing before the schema existed
 
 **Verification:**
-- [ ] `pnpm test` passes
+- [x] `pnpm test` passes (20/20 at the time)
 
 **Dependencies:** None
 
