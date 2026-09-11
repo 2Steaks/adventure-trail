@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -11,14 +11,15 @@ Add a `serializeGameState()` (`src/lib/adventures/serialize.ts`, same camelCase-
 Every adventure gets a `game_states` row at creation time already (`ai-planner` task 05), so `gameState` is never null for an existing adventure; no need to handle a missing row beyond the same 404/ownership check the route already does for `adventure`.
 
 **Acceptance criteria:**
-- [ ] `GET /api/adventures/:id` response includes `gameState: { currentQuestId: string | null, inventory: string[] }`
-- [ ] `adventure`/`quests` shape and behavior (404 on wrong owner, 401 unauthenticated) are unchanged
-- [ ] `useAdventure()`'s TypeScript type reflects the new `gameState` field
+- [x] `GET /api/adventures/:id` response includes `gameState: { currentQuestId: string | null, inventory: string[] }`
+- [x] `adventure`/`quests` shape and behavior (404 on wrong owner, 401 unauthenticated) are unchanged
+- [x] `useAdventure()`'s TypeScript type reflects the new `gameState` field
 
 **Verification:**
-- [ ] `pnpm test` passes (existing tests unaffected; add a `serializeGameState()` mapping test alongside the existing serialize tests if one exists, otherwise a small new one)
-- [ ] `pnpm build`/`lint` pass
-- [ ] Manual: `GET /api/adventures/:id` against a real adventure returns a `gameState` matching that adventure's actual `game_states` row (`current_quest_id`, `inventory`) via a direct DB query
+- [x] `pnpm test` passes (existing tests unaffected; added `serialize.test.ts` covering `serializeGameState()`, 70/70 total)
+- [x] `pnpm build`/`lint` pass
+- [x] Manual: unauthenticated request against `GET /api/adventures/:id` still returns `307` via the Proxy, confirming the route's auth gate is unchanged
+- [ ] **Deferred, same dependency as `ai-planner`'s live-verification gap:** confirming `gameState` against a real adventure's actual `game_states` row needs either an existing test adventure (none available — no DB/service-role access from this session, only the anon key) or creating a new one, which routes through the live-billed Adventure Planner call currently blocked by the same Anthropic usage limit (resets 2026-10-01). Not silently skipped — tracked here and in `tasks/plan-ai-encounter.md`.
 
 **Dependencies:** None
 

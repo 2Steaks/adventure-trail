@@ -22,13 +22,13 @@ Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 
 ### Phase: Free, pure primitives (zero API cost)
 - [x] [01 - encounterOutputSchema + validateEncounterActions() (TDD)](.scratch/ai-encounter/issues/01-encounter-schema-and-validation.md)
-- [ ] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md)
+- [x] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md) — implemented; live confirmation of the actual `gameState` payload deferred, see ticket
 - [ ] [03 - POST /api/adventures/:id/choice (flavor-only message, no LLM)](.scratch/ai-encounter/issues/03-choice-endpoint.md)
 
 ### Checkpoint A — after 01-03
 - [ ] `pnpm test` passes — all new schema/validation tests, `persistence`/`quest-gameplay`'s existing tests still green after the `GET` extension
 - [ ] No live Anthropic calls made yet; nothing billed so far
-- [ ] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row
+- [ ] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row — **deferred**: no existing test adventure and no DB/service-role access this session; creating one requires the same live-billed Adventure Planner call blocked by `ai-planner`'s usage limit (resets 2026-10-01). Unauthenticated-request behavior (`307`) was confirmed live instead.
 
 ### Phase: First live integration
 - [ ] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md)

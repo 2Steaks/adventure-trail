@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import {
   serializeAdventure,
+  serializeGameState,
   serializeQuest,
   type AdventureRow,
+  type GameStateRow,
   type QuestRow,
 } from "@/src/lib/adventures/serialize";
 
@@ -46,8 +48,22 @@ export async function GET(
     return NextResponse.json({ error: questsError.message }, { status: 400 });
   }
 
+  const { data: gameState, error: gameStateError } = await supabase
+    .from("game_states")
+    .select("*")
+    .eq("adventure_id", id)
+    .single();
+
+  if (gameStateError) {
+    return NextResponse.json(
+      { error: gameStateError.message },
+      { status: 400 },
+    );
+  }
+
   return NextResponse.json({
     adventure: serializeAdventure(adventure as AdventureRow),
     quests: (quests as QuestRow[]).map(serializeQuest),
+    gameState: serializeGameState(gameState as GameStateRow),
   });
 }
