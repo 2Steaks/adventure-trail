@@ -32,14 +32,14 @@ Tracker items: `.scratch/foundation/issues/01`–`09`.
 - [ ] Human visually reviews the shell before continuing — **outstanding, needs you to actually look at it**
 
 ### Phase: Independent, testable pieces
-- [ ] [04 - TanStack Query provider wiring](.scratch/foundation/issues/04-tanstack-query-provider.md)
-- [ ] [05 - Wizard component (TDD)](.scratch/foundation/issues/05-wizard-component.md)
-- [ ] [06 - Supabase server client env-validation tests (TDD)](.scratch/foundation/issues/06-supabase-server-client-tests.md)
+- [x] [04 - TanStack Query provider wiring](.scratch/foundation/issues/04-tanstack-query-provider.md)
+- [x] [05 - Wizard component (TDD)](.scratch/foundation/issues/05-wizard-component.md)
+- [x] [06 - Supabase server client env-validation tests (TDD)](.scratch/foundation/issues/06-supabase-server-client-tests.md)
 
 ### Checkpoint B — after 04–06
-- [ ] `pnpm test` passes including new Wizard and Supabase-client tests
-- [ ] React Query Devtools visible in `pnpm dev`
-- [ ] Human reviews test coverage for these three pieces
+- [x] `pnpm test` passes including new Wizard and Supabase-client tests (9/9)
+- [x] React Query Devtools visible in `pnpm dev` (verified via rendered HTML `tsqd` markers — no browser tool available this session)
+- [ ] Human reviews test coverage for these three pieces — **outstanding**
 
 ### Phase: Manually-gated infra
 - [ ] [07 - DB schema migration + RLS (blocked on your `supabase login`/`link`)](.scratch/foundation/issues/07-db-migration-rls.md)
