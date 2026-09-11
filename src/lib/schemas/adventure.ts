@@ -17,6 +17,8 @@ export const createAdventureSchema = z
       z.literal(2000),
       z.literal(5000),
     ]),
+    startingLat: z.number().min(-90).max(90),
+    startingLng: z.number().min(-180).max(180),
   })
   .refine((data) => data.ageMax >= data.ageMin, {
     message: "Maximum age must be greater than or equal to minimum age.",
