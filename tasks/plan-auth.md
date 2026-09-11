@@ -36,8 +36,8 @@ Tracker items: `.scratch/auth/issues/01`–`06`.
 ### Checkpoint B — Auth complete
 - [x] Every `SPEC-auth.md` Success Criteria box checked
 - [x] Manual end-to-end pass: register → login (session cookie set) → `/` (`200`) → logout → `/` (`307 → /login`, real invalidation) → wrong password (`401`). Done against local dev hitting the live Supabase project, not yet the deployed preview URL specifically — functionally equivalent since both hit the same Supabase backend, but flagging the distinction rather than overclaiming "live preview" literally.
-- [ ] CI green on the PR(s) — pending, will confirm once pushed
-- [ ] Human reviews and merges — **outstanding**
+- [x] CI green on the PR(s) — [PR #7](https://github.com/2Steaks/dungeon-master-ai/pull/7) passed lint/test/build
+- [x] Human reviews and merges — PR #7 merged to `main` (`dab1b2a`)
 
 **Found along the way, not in the original plan:**
 - Zero Vercel environment variables were configured at all (fixed in task 01/04's PR, see `tasks/plan-foundation.md`'s updated gaps list)
