@@ -62,7 +62,7 @@ This is the whole-project phased plan, derived from `CAPABILITY_MAP.md`'s module
 **Ships:** mobile quest screen, Haversine distance display, Google Maps deep link, backend-determined arrival (`distance <= quest.radiusMeters`) — all exercised against Phase 3's **hard-coded** landmark, no AI involved yet.
 **Exit checkpoint:**
 > Create (hard-coded) → landmark → Maps → walk → distance changes → arrive
-**Key risk:** browser geolocation accuracy/permissions on real devices — test on the live Vercel preview on an actual phone outdoors, not just desktop devtools (now possible from Phase 1's continuous deployment).
+**Key risk:** browser geolocation accuracy/permissions on real devices — test on the live Vercel preview on an actual phone outdoors, not just desktop devtools (now possible from Phase 1's continuous deployment). **New sub-risk found during Foundation:** preview URLs are behind Vercel Deployment Protection (SSO) by default, which will bounce a logged-out phone browser to a Vercel login page instead of the app. Needs a decision before this phase starts: disable protection for preview deployments (Vercel project settings → Deployment Protection), or generate a protection-bypass URL/token per test session. Not decided here — Foundation only surfaces it.
 
 ### Phase 5 — AI Adventure Planner
 **Modules:** `ai-planner`
