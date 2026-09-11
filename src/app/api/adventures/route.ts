@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { createAdventureSchema } from "@/src/lib/schemas/adventure";
-import { HARD_CODED_QUEST } from "@/src/lib/game/hard-coded-quest";
+import {
+  fetchNearbyPlaces,
+  NearbyPlacesFetchError,
+} from "@/src/lib/places/fetch-nearby-places";
+import { generateAdventurePlan, AdventurePlanError } from "@/src/lib/ai/planner";
 import {
   serializeAdventure,
   type AdventureRow,
 } from "@/src/lib/adventures/serialize";
+
+// Arrival radius isn't LLM-controlled — a fixed, reliable value the same way
+// every quest so far has used, independent of which landmark gets picked.
+const QUEST_RADIUS_METERS = 40;
 
 export async function GET() {
   const { user, supabase } = await requireUser();
@@ -59,53 +67,119 @@ export async function POST(request: Request) {
     );
   }
 
+  const {
+    theme,
+    ageMin,
+    ageMax,
+    durationMinutes,
+    maxDistanceMeters,
+    startingLat,
+    startingLng,
+  } = body.data;
+
+  // Nothing is written to the database until a valid plan exists — a
+  // failure here (no candidates, or the planner never producing a valid
+  // result) leaves zero rows behind, no rollback needed.
+  let candidates;
+  try {
+    candidates = await fetchNearbyPlaces({
+      lat: startingLat,
+      lng: startingLng,
+      radiusMeters: maxDistanceMeters,
+    });
+  } catch (error) {
+    if (error instanceof NearbyPlacesFetchError) {
+      return NextResponse.json({ error: error.message }, { status: 502 });
+    }
+    throw error;
+  }
+
+  if (candidates.length === 0) {
+    return NextResponse.json(
+      { error: "Couldn't find any landmarks near that location. Try again." },
+      { status: 502 },
+    );
+  }
+
+  let plan;
+  try {
+    plan = await generateAdventurePlan({
+      theme,
+      ageMin,
+      ageMax,
+      durationMinutes,
+      locations: candidates,
+    });
+  } catch (error) {
+    if (error instanceof AdventurePlanError) {
+      return NextResponse.json(
+        { error: "Couldn't plan an adventure for that location. Try again." },
+        { status: 502 },
+      );
+    }
+    throw error;
+  }
+
   const { data: adventure, error: adventureError } = await supabase
     .from("adventures")
     .insert({
       user_id: user.id,
-      title: body.data.theme,
-      theme: body.data.theme,
-      age_min: body.data.ageMin,
-      age_max: body.data.ageMax,
-      duration_minutes: body.data.durationMinutes,
-      max_distance_meters: body.data.maxDistanceMeters,
-      starting_lat: HARD_CODED_QUEST.latitude,
-      starting_lng: HARD_CODED_QUEST.longitude,
+      title: plan.title,
+      theme,
+      age_min: ageMin,
+      age_max: ageMax,
+      duration_minutes: durationMinutes,
+      max_distance_meters: maxDistanceMeters,
+      starting_lat: startingLat,
+      starting_lng: startingLng,
     })
     .select()
     .single();
 
   if (adventureError) {
-    return NextResponse.json({ error: adventureError.message }, { status: 400 });
+    return NextResponse.json(
+      { error: adventureError.message },
+      { status: 400 },
+    );
   }
 
-  const { data: quest, error: questError } = await supabase
-    .from("quests")
-    .insert({
-      adventure_id: adventure.id,
-      position: 1,
-      objective: HARD_CODED_QUEST.objective,
-      type: HARD_CODED_QUEST.type,
-      landmark_name: HARD_CODED_QUEST.landmarkName,
-      landmark_type: HARD_CODED_QUEST.landmarkType,
-      latitude: HARD_CODED_QUEST.latitude,
-      longitude: HARD_CODED_QUEST.longitude,
-      radius_meters: HARD_CODED_QUEST.radiusMeters,
-    })
-    .select()
-    .single();
+  const candidatesById = new Map(candidates.map((c) => [c.id, c]));
 
-  if (questError) {
-    return NextResponse.json({ error: questError.message }, { status: 400 });
+  const { data: quests, error: questsError } = await supabase
+    .from("quests")
+    .insert(
+      plan.quests.map((quest, index) => {
+        const location = candidatesById.get(quest.locationId)!;
+        return {
+          adventure_id: adventure.id,
+          position: index + 1,
+          objective: quest.objective,
+          type: quest.type,
+          landmark_name: location.name,
+          landmark_type: location.type,
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius_meters: QUEST_RADIUS_METERS,
+        };
+      }),
+    )
+    .select()
+    .order("position", { ascending: true });
+
+  if (questsError) {
+    return NextResponse.json({ error: questsError.message }, { status: 400 });
   }
 
   const { error: gameStateError } = await supabase.from("game_states").insert({
     adventure_id: adventure.id,
-    current_quest_id: quest.id,
+    current_quest_id: quests[0].id,
   });
 
   if (gameStateError) {
-    return NextResponse.json({ error: gameStateError.message }, { status: 400 });
+    return NextResponse.json(
+      { error: gameStateError.message },
+      { status: 400 },
+    );
   }
 
   return NextResponse.json({

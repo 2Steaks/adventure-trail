@@ -151,15 +151,15 @@ export type AdventurePlan = z.infer<typeof adventurePlanSchema>;
 
 ## Success Criteria
 
-- [ ] `POST /api/adventures` rejects unauthenticated requests, same as before
-- [ ] `POST /api/adventures` returns `400` for an invalid body (now including missing/out-of-range `startingLat`/`startingLng`), before calling Overpass or the LLM
-- [ ] A valid request with no nearby landmarks found returns a clear `502`-class error — no adventure row created
-- [ ] A valid request generates a real plan via `generateText`/`Output.object()`, validates every `locationId` against the real candidate list, retries once on an invalid result, and fails explicitly (no DB writes) if the retry also fails
-- [ ] A successful plan persists one `adventures` row, one `quests` row per generated quest (not just one), and one `game_states` row with `current_quest_id` = the first quest's id
-- [ ] `quest-gameplay`'s existing `/adventures/[id]` page and arrival flow work unmodified against an AI-generated quest — no changes needed there, confirming the earlier `current_quest_id`-based design decision was the right call
-- [ ] `invalidLocationIds()` and `adventurePlanSchema` tested per the Testing Strategy above, TDD
-- [ ] `HARD_CODED_QUEST` and its only consumer are removed — no dead code left behind
-- [ ] `pnpm build`/`lint`/`test` pass; CI green on the PR
+- [x] `POST /api/adventures` rejects unauthenticated requests, same as before
+- [x] `POST /api/adventures` returns `400` for an invalid body (now including missing/out-of-range `startingLat`/`startingLng`), before calling Overpass or the LLM
+- [x] A valid request with no nearby landmarks found returns a clear `502`-class error — no adventure row created (verified live with ocean coordinates)
+- [ ] A valid request generates a real plan via `generateText`/`Output.object()`, validates every `locationId` against the real candidate list, retries once on an invalid result, and fails explicitly (no DB writes) if the retry also fails — **implemented, live verification deferred** (see Open Questions)
+- [ ] A successful plan persists one `adventures` row, one `quests` row per generated quest (not just one), and one `game_states` row with `current_quest_id` = the first quest's id — **implemented, live verification deferred**
+- [ ] `quest-gameplay`'s existing `/adventures/[id]` page and arrival flow work unmodified against an AI-generated quest — **not yet exercised against a real AI-generated quest**, deferred
+- [x] `invalidLocationIds()` and `adventurePlanSchema` tested per the Testing Strategy above, TDD
+- [x] `HARD_CODED_QUEST` and its only consumer are removed — no dead code left behind
+- [x] `pnpm build`/`lint`/`test` pass; CI green on the PR — pending, will confirm once the PR is up
 
 ## Open Questions
 

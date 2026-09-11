@@ -1,35 +1,74 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateAdventure } from "@/src/lib/adventures/hooks";
+import { getCurrentPosition } from "@/src/lib/geo/geolocation";
 import {
-  createAdventureSchema,
+  createAdventureFields,
+  ageRangeRefinement,
   type CreateAdventure,
 } from "@/src/lib/schemas/adventure";
 import { Button } from "@/src/components/ui/button";
 
+type AdventureFormFields = Omit<
+  CreateAdventure,
+  "startingLat" | "startingLng"
+>;
+
+const adventureFormSchema = createAdventureFields
+  .omit({ startingLat: true, startingLng: true })
+  .refine(ageRangeRefinement.check, ageRangeRefinement);
+
 export default function NewAdventurePage() {
   const router = useRouter();
   const createAdventure = useCreateAdventure();
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<CreateAdventure>({
-    resolver: zodResolver(createAdventureSchema),
+  } = useForm<AdventureFormFields>({
+    resolver: zodResolver(adventureFormSchema),
     defaultValues: {
       durationMinutes: 60,
       maxDistanceMeters: 1000,
     },
   });
 
-  const onSubmit = (data: CreateAdventure) => {
-    createAdventure.mutate(data, {
-      onSuccess: (response) => router.push(`/adventures/${response.adventure.id}`),
-    });
+  const onSubmit = async (data: AdventureFormFields) => {
+    setLocationError(null);
+    setIsLocating(true);
+
+    let position;
+    try {
+      position = await getCurrentPosition();
+    } catch (error) {
+      setLocationError(
+        error instanceof Error ? error.message : "Couldn't get your location.",
+      );
+      setIsLocating(false);
+      return;
+    }
+    setIsLocating(false);
+
+    createAdventure.mutate(
+      {
+        ...data,
+        startingLat: position.coords.latitude,
+        startingLng: position.coords.longitude,
+      },
+      {
+        onSuccess: (response) =>
+          router.push(`/adventures/${response.adventure.id}`),
+      },
+    );
   };
+
+  const isSubmitting = isLocating || createAdventure.isPending;
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
@@ -118,18 +157,21 @@ export default function NewAdventurePage() {
           <option value={5000}>5 km</option>
         </select>
 
+        {locationError && (
+          <p className="mt-4 text-sm text-destructive">{locationError}</p>
+        )}
         {createAdventure.error && (
           <p className="mt-4 text-sm text-destructive">
             {createAdventure.error.message}
           </p>
         )}
 
-        <Button
-          type="submit"
-          className="mt-6 w-full"
-          disabled={createAdventure.isPending}
-        >
-          {createAdventure.isPending ? "Creating..." : "Create Adventure"}
+        <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
+          {isLocating
+            ? "Getting your location..."
+            : createAdventure.isPending
+              ? "Planning your adventure..."
+              : "Create Adventure"}
         </Button>
       </form>
     </main>

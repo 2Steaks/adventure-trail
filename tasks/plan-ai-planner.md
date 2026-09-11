@@ -39,11 +39,12 @@ Tracker items: `.scratch/ai-planner/issues/01`–`05`.
 - [ ] [05 - Real AI-planned Create Adventure (vertical slice)](.scratch/ai-planner/issues/05-create-adventure-vertical-slice.md) — live verification will be deferred along with task 04's
 
 ### Checkpoint C — AI Planner complete
-- [ ] Every `SPEC-ai-planner.md` Success Criteria box checked
-- [ ] Manual pass: one real end-to-end adventure creation, confirmed via a direct DB query; `quest-gameplay`'s arrival flow confirmed working unmodified against the AI-generated quest; failure paths (no candidates, invalid body) confirmed without needing a live LLM call
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [ ] Every `SPEC-ai-planner.md` Success Criteria box checked — **not yet: the happy-path/end-to-end-generation boxes are deferred, see Checkpoint B**
+- [x] Failure paths (no candidates, invalid body, unauthenticated) confirmed live without needing a live LLM call
+- [ ] Manual pass: one real end-to-end adventure creation, confirmed via a direct DB query; `quest-gameplay`'s arrival flow confirmed working unmodified against the AI-generated quest — **deferred to a later stage**
+- [x] `pnpm build`/`lint`/`test` all pass
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 
