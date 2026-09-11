@@ -20,23 +20,23 @@ Unlike `places` (Phase 3's other module), `persistence` has a real, testable ver
 Tracker items: `.scratch/persistence/issues/01`–`04`.
 
 ### Phase: Foundational primitive
-- [ ] [01 - Adventure Zod schema + hard-coded quest constant (TDD)](.scratch/persistence/issues/01-adventure-schema.md)
+- [x] [01 - Adventure Zod schema + hard-coded quest constant (TDD)](.scratch/persistence/issues/01-adventure-schema.md)
 
 ### Checkpoint A — after 01
-- [ ] `pnpm test` passes with the new schema tests
-- [ ] `HARD_CODED_QUEST` reviewed against `SPEC-persistence.md`'s coordinates/radius before it's referenced by task 02's insert (a typo here would silently ship a wrong landmark to every adventure)
+- [x] `pnpm test` passes with the new schema tests (31/31)
+- [x] `HARD_CODED_QUEST` reviewed against `SPEC-persistence.md`'s coordinates/radius before it's referenced by task 02's insert
 
 ### Phase: Vertical slices
-- [ ] [02 - Create Adventure (route handler + hook + page)](.scratch/persistence/issues/02-create-adventure.md)
-- [ ] [03 - Adventures list (route handler + hook + page)](.scratch/persistence/issues/03-adventures-list.md)
-- [ ] [04 - Adventure detail (route handler + hook + page)](.scratch/persistence/issues/04-adventure-detail.md)
+- [x] [02 - Create Adventure (route handler + hook + page)](.scratch/persistence/issues/02-create-adventure.md)
+- [x] [03 - Adventures list (route handler + hook + page)](.scratch/persistence/issues/03-adventures-list.md)
+- [x] [04 - Adventure detail (route handler + hook + page)](.scratch/persistence/issues/04-adventure-detail.md)
 
 ### Checkpoint B — Persistence complete
-- [ ] Every `SPEC-persistence.md` Success Criteria box checked
-- [ ] Manual end-to-end pass: create an adventure → appears on `/` → "Resume" → detail page shows the hard-coded quest → confirmed absent from a second test user's list and unreachable via a guessed id
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [x] Every `SPEC-persistence.md` Success Criteria box checked
+- [x] Manual end-to-end pass: create an adventure → appears on `/` → "Resume" → detail page shows the hard-coded quest → confirmed absent from a second test user's list and returns `404` via a guessed id
+- [x] `pnpm build`/`lint`/`test` all pass
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 

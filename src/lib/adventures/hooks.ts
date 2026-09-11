@@ -1,6 +1,11 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { CreateAdventure } from "@/src/lib/schemas/adventure";
-import type { AdventureSummary } from "@/src/lib/adventures/serialize";
+import type {
+  AdventureSummary,
+  SerializedAdventure,
+  SerializedQuest,
+  SerializedGameState,
+} from "@/src/lib/adventures/serialize";
 
 async function getJson<T>(path: string): Promise<T> {
   const response = await fetch(path);
@@ -34,6 +39,18 @@ export function useAdventures() {
     queryKey: ["adventures"],
     queryFn: () =>
       getJson<{ adventures: AdventureSummary[] }>("/api/adventures"),
+  });
+}
+
+export function useAdventure(id: string) {
+  return useQuery({
+    queryKey: ["adventures", id],
+    queryFn: () =>
+      getJson<{
+        adventure: SerializedAdventure;
+        quests: SerializedQuest[];
+        gameState: SerializedGameState | null;
+      }>(`/api/adventures/${id}`),
   });
 }
 

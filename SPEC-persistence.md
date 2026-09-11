@@ -145,7 +145,7 @@ export const createAdventureSchema = z
 ## Testing Strategy
 
 - `createAdventureSchema` (`adventure.test.ts`): valid case; `ageMax < ageMin` rejected; a `durationMinutes`/`maxDistanceMeters` value outside the allowed set rejected. TDD — genuinely new validation logic, same bar as `authCredentialsSchema.test.ts`.
-- **Not unit-tested, verified manually instead** (same posture as `SPEC-auth.md`'s Testing Strategy gap): the Route Handlers' Supabase calls themselves, and RLS cross-user isolation. Manual pass: create an adventure as user A, confirm it appears in A's list and detail view; log in as user B, confirm A's adventure is absent from B's list and B's `GET /api/adventures/:id` on A's id returns 401/404, not A's data.
+- **Not unit-tested, verified manually instead** (same posture as `SPEC-auth.md`'s Testing Strategy gap): the Route Handlers' Supabase calls themselves, and RLS cross-user isolation. Manual pass: create an adventure as user A, confirm it appears in A's list and detail view; log in as user B, confirm A's adventure is absent from B's list and B's `GET /api/adventures/:id` on A's id returns `404`, not A's data.
 - No new test infra beyond what `foundation`/`auth` already set up.
 
 ## Boundaries
@@ -156,17 +156,17 @@ export const createAdventureSchema = z
 
 ## Success Criteria
 
-- [ ] `POST /api/adventures` rejects an unauthenticated request before touching Supabase — a cookie-less request gets `307 → /login` from the Proxy (it isn't a public path); `requireUser()`'s own `401` is the fallback boundary for when Proxy coverage doesn't apply, per the "never rely on the Proxy alone" rule below
-- [ ] `POST /api/adventures` returns `400` (before any Supabase call) for an invalid body — missing theme, or `ageMax < ageMin`, or an out-of-set `durationMinutes`/`maxDistanceMeters`
-- [ ] `POST /api/adventures` with a valid body creates one `adventures` row (owned by the authenticated user, `starting_lat`/`starting_lng` = `HARD_CODED_QUEST`'s coordinates), one `quests` row (`HARD_CODED_QUEST`'s content, `adventure_id` = the new adventure), and one `game_states` row (`current_quest_id` = that quest's id); returns the created adventure
-- [ ] `GET /api/adventures` rejects unauthenticated (`307` via the Proxy, same as `POST`'s note above); authenticated, returns only the caller's own adventures (verified against a second test account)
-- [ ] `GET /api/adventures/:id` rejects unauthenticated, and does not return another user's adventure (`401`/`404`) even if the id is guessed
-- [ ] `/` renders the Adventures list: name, theme, age range, duration, status, progress (quests complete / total), and "Resume" (→ `/adventures/[id]`) / "Create adventure" (→ `/adventures/new`) actions, sourced via a TanStack Query hook calling `GET /api/adventures`
-- [ ] `/adventures/new` renders the Create Adventure form (theme, age range, duration, max distance) via `react-hook-form` + `zodResolver(createAdventureSchema)`; on success, redirects to the new adventure's detail page
-- [ ] `/adventures/[id]` renders the adventure's hard-coded quest (landmark name, objective) and current status
-- [ ] The logout button relocates from `/` (Foundation/auth placeholder) onto the new Adventures list page and still works
-- [ ] `createAdventureSchema` tested per the Testing Strategy above, TDD
-- [ ] `pnpm build`/`lint`/`test` pass; CI green on the PR
+- [x] `POST /api/adventures` rejects an unauthenticated request before touching Supabase — a cookie-less request gets `307 → /login` from the Proxy (it isn't a public path); `requireUser()`'s own `401` is the fallback boundary for when Proxy coverage doesn't apply, per the "never rely on the Proxy alone" rule below
+- [x] `POST /api/adventures` returns `400` (before any Supabase call) for an invalid body — missing theme, or `ageMax < ageMin`, or an out-of-set `durationMinutes`/`maxDistanceMeters`
+- [x] `POST /api/adventures` with a valid body creates one `adventures` row (owned by the authenticated user, `starting_lat`/`starting_lng` = `HARD_CODED_QUEST`'s coordinates), one `quests` row (`HARD_CODED_QUEST`'s content, `adventure_id` = the new adventure), and one `game_states` row (`current_quest_id` = that quest's id); returns the created adventure
+- [x] `GET /api/adventures` rejects unauthenticated (`307` via the Proxy, same as `POST`'s note above); authenticated, returns only the caller's own adventures (verified against a second test account)
+- [x] `GET /api/adventures/:id` rejects unauthenticated (`307` via the Proxy), and returns `404` — not another user's data — for a guessed id belonging to someone else
+- [x] `/` renders the Adventures list: name, theme, age range, duration, status, progress (quests complete / total), and "Resume" (→ `/adventures/[id]`) / "Create adventure" (→ `/adventures/new`) actions, sourced via a TanStack Query hook calling `GET /api/adventures`
+- [x] `/adventures/new` renders the Create Adventure form (theme, age range, duration, max distance) via `react-hook-form` + `zodResolver(createAdventureSchema)`; on success, redirects to the new adventure's detail page
+- [x] `/adventures/[id]` renders the adventure's hard-coded quest (landmark name, objective) and current status
+- [x] The logout button relocates from `/` (Foundation/auth placeholder) onto the new Adventures list page and still works
+- [x] `createAdventureSchema` tested per the Testing Strategy above, TDD
+- [x] `pnpm build`/`lint`/`test` pass; CI green on the PR — pending, will confirm once the PR is up
 
 ## Open Questions
 

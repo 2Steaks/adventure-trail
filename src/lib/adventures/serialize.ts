@@ -21,6 +21,29 @@ export type AdventureSummary = SerializedAdventure & {
   questsCompleted: number;
 };
 
+export type QuestRow = {
+  id: string;
+  adventure_id: string;
+  position: number;
+  objective: string;
+  type: string;
+  landmark_name: string;
+  landmark_type: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  status: string;
+  created_at: string;
+};
+
+export type GameStateRow = {
+  adventure_id: string;
+  current_quest_id: string | null;
+  state: Record<string, unknown>;
+  inventory: unknown[];
+  updated_at: string;
+};
+
 export function serializeAdventure(row: AdventureRow) {
   return {
     id: row.id,
@@ -35,6 +58,37 @@ export function serializeAdventure(row: AdventureRow) {
     startingLng: row.starting_lng,
     status: row.status,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+export type SerializedQuest = ReturnType<typeof serializeQuest>;
+
+export function serializeQuest(row: QuestRow) {
+  return {
+    id: row.id,
+    adventureId: row.adventure_id,
+    position: row.position,
+    objective: row.objective,
+    type: row.type,
+    landmarkName: row.landmark_name,
+    landmarkType: row.landmark_type,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    radiusMeters: row.radius_meters,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+export type SerializedGameState = ReturnType<typeof serializeGameState>;
+
+export function serializeGameState(row: GameStateRow) {
+  return {
+    adventureId: row.adventure_id,
+    currentQuestId: row.current_quest_id,
+    state: row.state,
+    inventory: row.inventory,
     updatedAt: row.updated_at,
   };
 }
