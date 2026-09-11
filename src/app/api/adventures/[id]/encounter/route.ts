@@ -57,17 +57,36 @@ export async function POST(
     );
   }
 
-  const { data: quests, error: questsError } = await supabase
-    .from("quests")
-    .select("*")
-    .eq("adventure_id", id)
-    .order("position", { ascending: true });
+  // Neither query depends on the other's result — both only need `id` —
+  // so they run concurrently rather than as two sequential round trips.
+  const [questsResult, messagesResult] = await Promise.all([
+    supabase
+      .from("quests")
+      .select("*")
+      .eq("adventure_id", id)
+      .order("position", { ascending: true }),
+    supabase
+      .from("messages")
+      .select("role, content")
+      .eq("adventure_id", id)
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
 
-  if (questsError) {
-    return NextResponse.json({ error: questsError.message }, { status: 400 });
+  if (questsResult.error) {
+    return NextResponse.json(
+      { error: questsResult.error.message },
+      { status: 400 },
+    );
+  }
+  if (messagesResult.error) {
+    return NextResponse.json(
+      { error: messagesResult.error.message },
+      { status: 400 },
+    );
   }
 
-  const allQuests = quests as QuestRow[];
+  const allQuests = questsResult.data as QuestRow[];
   const currentIndex = allQuests.findIndex((quest) => quest.id === currentQuestId);
   const currentQuest = allQuests[currentIndex];
 
@@ -76,20 +95,7 @@ export async function POST(
   }
 
   const nextQuest = allQuests[currentIndex + 1] ?? null;
-
-  const { data: recentMessages, error: messagesError } = await supabase
-    .from("messages")
-    .select("role, content")
-    .eq("adventure_id", id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  if (messagesError) {
-    return NextResponse.json(
-      { error: messagesError.message },
-      { status: 400 },
-    );
-  }
+  const recentMessages = messagesResult.data;
 
   let output;
   try {
@@ -117,6 +123,12 @@ export async function POST(
     }
     throw error;
   }
+
+  // Accumulated locally and written once per ADD_ITEM action, starting
+  // from the inventory already loaded above — no need to re-read
+  // game_states between actions since nothing else in this loop touches
+  // the inventory column.
+  let inventory = gameState?.inventory ?? [];
 
   for (const action of output.actions) {
     if (action.type === "COMPLETE_OBJECTIVE") {
@@ -157,23 +169,11 @@ export async function POST(
     }
 
     if (action.type === "ADD_ITEM") {
-      const { data: latest, error: latestError } = await supabase
-        .from("game_states")
-        .select("inventory")
-        .eq("adventure_id", id)
-        .single();
-      if (latestError) {
-        return NextResponse.json(
-          { error: latestError.message },
-          { status: 400 },
-        );
-      }
+      inventory = [...inventory, action.itemId];
 
       const { error: inventoryUpdateError } = await supabase
         .from("game_states")
-        .update({
-          inventory: [...(latest.inventory as string[]), action.itemId],
-        })
+        .update({ inventory })
         .eq("adventure_id", id);
       if (inventoryUpdateError) {
         return NextResponse.json(

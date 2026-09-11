@@ -31,6 +31,18 @@ Add `useEncounter(adventureId)` (`src/lib/game/hooks.ts`, `useMutation` + `fetch
 - [ ] **Deferred, same dependency as tasks 02-04:** wrong-owner `404`, no-current-quest `409`, and the full live encounter flow (arrive → talk to Wizard → AI message + choices → objective completed → quest/adventure advancement) all need an existing adventure, which needs a live-billed Adventure Planner call — blocked by the same Anthropic usage limit (resets 2026-10-01). Not silently accepted.
 - [ ] Every `SPEC-ai-encounter.md` Success Criteria box checked — the live-dependent ones are explicitly deferred, matching task 04's status, not silently skipped
 
+**Code review findings (applied):**
+- `checkArrival`'s result stayed stuck `arrived: true` after the current quest advanced to a new landmark (the `??` fallback never re-evaluates a real boolean) — fixed by resetting `checkArrival` on `currentQuestId` change.
+- Tapping a choice called `encounter.reset()` immediately instead of after `sendChoice` actually succeeded, silently losing both the submitted choice and any error on failure — fixed by moving `encounter.reset()` into `sendChoice`'s `onSuccess`, and rendering `sendChoice.error`.
+- An encounter with `choices: []` on a non-final quest (schema allows it; nothing enforced "final quest only") left the player stuck with no way to proceed — fixed with a `Continue` fallback button in `EncounterPanel`.
+- The `!currentQuest` gate hid an unread encounter message (including the adventure's final "The End" narration) the instant the server-side quest position advanced past it, racing the query invalidation against the user actually reading the message — fixed by gating on `!currentQuest && !encounter.data` instead, so the panel persists until explicitly dismissed.
+- `ADD_ITEM` did a wasted extra `SELECT` per action to re-read inventory already loaded at the top of the function — fixed with a local accumulator.
+- The independent `quests`/`messages` fetches ran as two sequential round trips — fixed with `Promise.all`.
+
+**Code review findings (not applied, accepted as-is):**
+- Action-application logic living inline in the route handler rather than a separately-testable domain function — consistent with `quest-gameplay`'s `arrival/route.ts`, which has the same shape and was never extracted either.
+- No locking/idempotency-key guard against two concurrent `POST .../encounter` calls racing each other — same accepted-risk posture as `SPEC-ai-encounter.md`'s Resolved Decisions on `ADD_ITEM`'s race window (single player per adventure, no concurrent-tab story anywhere else in the codebase).
+
 **Dependencies:** 01, 02, 03, 04
 
 **Files likely touched:**
