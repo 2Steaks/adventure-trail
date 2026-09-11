@@ -31,11 +31,11 @@ Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 - [ ] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row — **deferred**: no existing test adventure and no DB/service-role access this session; creating one requires the same live-billed Adventure Planner call blocked by `ai-planner`'s usage limit (resets 2026-10-01). Unauthenticated-request behavior (`307`) was confirmed live instead.
 
 ### Phase: First live integration
-- [ ] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md)
+- [x] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md) — implemented; live verification deferred, see below
 
 ### Checkpoint B — after 04
-- [ ] `generateEncounter()` proven against at least one real, live call — **at risk of the same deferral `ai-planner` hit**: that module's live verification was blocked on an Anthropic account usage limit that resets 2026-10-01. If still blocked when this task runs, defer the same way (explicit, tracked gap in this plan and in `SPEC-ai-encounter.md`, not silently accepted), and proceed on typecheck/lint/unit-test/code-review confidence alone, same as `ai-planner` tasks 04–05.
-- [ ] Live-call count for this checkpoint stayed small and deliberate (no retry-looping to work around a limit)
+- [ ] `generateEncounter()` proven against at least one real, live call — **confirmed deferred**: the one attempt made hit the same Anthropic account usage limit `ai-planner` hit (`AI_APICallError`, resets 2026-10-01 at 00:00 UTC) — a billing/account block, not a code bug. Live verification of task 04 and task 05's end-to-end flow moves to after that date; implementation of task 05 proceeds on typecheck/lint/unit-test/code-review confidence alone, same as `ai-planner`. **Re-verify live before treating this module as done.**
+- [x] Live-call count for this checkpoint stayed small and deliberate (one attempt, no retry-looping to work around the limit)
 
 ### Phase: Vertical slice
 - [ ] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md)
