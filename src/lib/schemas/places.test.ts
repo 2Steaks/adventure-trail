@@ -26,6 +26,16 @@ describe("nearbyPlacesQuerySchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects a null lat/lng (URLSearchParams.get()'s actual return for a missing param), not silently coercing to 0,0", () => {
+    const result = nearbyPlacesQuerySchema.safeParse({
+      lat: null,
+      lng: null,
+      radiusMeters: undefined,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("defaults radiusMeters to 1000 when omitted", () => {
     const result = nearbyPlacesQuerySchema.safeParse({
       lat: "51.508",
