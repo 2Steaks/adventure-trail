@@ -156,7 +156,7 @@ export const createAdventureSchema = z
 
 ## Success Criteria
 
-- [ ] `POST /api/adventures` returns `401` for an unauthenticated request, independent of the Proxy
+- [ ] `POST /api/adventures` rejects an unauthenticated request before touching Supabase — a cookie-less request gets `307 → /login` from the Proxy (it isn't a public path); `requireUser()`'s own `401` is the fallback boundary for when Proxy coverage doesn't apply, per the "never rely on the Proxy alone" rule below
 - [ ] `POST /api/adventures` returns `400` (before any Supabase call) for an invalid body — missing theme, or `ageMax < ageMin`, or an out-of-set `durationMinutes`/`maxDistanceMeters`
 - [ ] `POST /api/adventures` with a valid body creates one `adventures` row (owned by the authenticated user, `starting_lat`/`starting_lng` = `HARD_CODED_QUEST`'s coordinates), one `quests` row (`HARD_CODED_QUEST`'s content, `adventure_id` = the new adventure), and one `game_states` row (`current_quest_id` = that quest's id); returns the created adventure
 - [ ] `GET /api/adventures` returns `401` unauthenticated; authenticated, returns only the caller's own adventures (verified against a second test account)
