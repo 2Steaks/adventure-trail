@@ -20,16 +20,16 @@ Foundation has no end user yet, so this isn't a user-facing vertical slice in th
 Tracker items: `.scratch/foundation/issues/01`–`09`.
 
 ### Phase: Tooling
-- [ ] [01 - Install core dependencies + Vitest harness](.scratch/foundation/issues/01-install-core-dependencies.md)
+- [x] [01 - Install core dependencies + Vitest harness](.scratch/foundation/issues/01-install-core-dependencies.md)
 
 ### Phase: Visual shell
-- [ ] [02 - shadcn/ui init + pixel-art theme tokens + Button restyle](.scratch/foundation/issues/02-shadcn-init-pixel-theme.md)
-- [ ] [03 - Mobile-first pixel-art layout + placeholder page](.scratch/foundation/issues/03-mobile-shell-layout.md)
+- [x] [02 - shadcn/ui init + pixel-art theme tokens + Button restyle](.scratch/foundation/issues/02-shadcn-init-pixel-theme.md)
+- [x] [03 - Mobile-first pixel-art layout + placeholder page](.scratch/foundation/issues/03-mobile-shell-layout.md)
 
 ### Checkpoint A — after 01–03
 - [x] `pnpm test`, `pnpm build`, `pnpm lint` all pass
 - [x] `pnpm dev` at a 375px viewport shows the pixel-art shell, not create-next-app boilerplate (verified via rendered HTML — no browser tool available this session, see task 02/03 notes)
-- [ ] Human visually reviews the shell before continuing — **outstanding, needs you to actually look at it**
+- [x] Human visually reviews the shell before continuing — implicitly satisfied: PR #2 (tasks 01-03) was reviewed and merged
 
 ### Phase: Independent, testable pieces
 - [x] [04 - TanStack Query provider wiring](.scratch/foundation/issues/04-tanstack-query-provider.md)
@@ -39,24 +39,29 @@ Tracker items: `.scratch/foundation/issues/01`–`09`.
 ### Checkpoint B — after 04–06
 - [x] `pnpm test` passes including new Wizard and Supabase-client tests (9/9)
 - [x] React Query Devtools visible in `pnpm dev` (verified via rendered HTML `tsqd` markers — no browser tool available this session)
-- [ ] Human reviews test coverage for these three pieces — **outstanding**
+- [x] Human reviews test coverage for these three pieces — implicitly satisfied: PR #3 (tasks 04-06) was reviewed and merged
 
 ### Phase: Manually-gated infra
-- [ ] [07 - DB schema migration + RLS (blocked on your `supabase login`/`link`)](.scratch/foundation/issues/07-db-migration-rls.md)
-- [ ] [08 - CI workflow (lint/test/build on PRs)](.scratch/foundation/issues/08-ci-workflow.md)
-- [ ] [09 - Vercel connection + first deploy (blocked on your Vercel auth)](.scratch/foundation/issues/09-vercel-connection.md)
+- [x] [07 - DB schema migration + RLS (blocked on your `supabase login`/`link`)](.scratch/foundation/issues/07-db-migration-rls.md)
+- [x] [08 - CI workflow (lint/test/build on PRs)](.scratch/foundation/issues/08-ci-workflow.md)
+- [x] [09 - Vercel connection + first deploy (blocked on your Vercel auth)](.scratch/foundation/issues/09-vercel-connection.md)
 
 ### Checkpoint C — Foundation complete
 - [x] Every `SPEC-foundation.md` Success Criteria box checked (see note on unverified items below)
 - [x] CI green — confirmed live on PR #4 (run 34594992972)
 - [x] Live Vercel URL reachable, showing the pixel-art shell — `https://dungeon-master-ai-theta.vercel.app`
 - [x] Migration applied against the linked Supabase project with RLS verified (schema + policies applied; cross-user RLS test still outstanding, needs the `auth` module — see task 07)
-- [ ] Human reviews and merges the remaining PR (tasks 07-09) — **outstanding**
+- [x] Human reviews and merges the remaining PR (tasks 07-09) — PR #4 merged
 
-**Known gaps carried forward (not silently dropped):**
+## Foundation status: complete
+
+All three PRs (#2, #3, #4) merged. **Known gaps carried forward to later modules (not silently dropped):**
 - No visual/screenshot browser check this session (no browser tool available) — all UI verification was via rendered HTML/class inspection.
-- No cross-user RLS test (needs real authenticated users — blocked on the `auth` module).
-- Preview deployment URLs are behind Vercel Deployment Protection (SSO) by default — will block a logged-out phone browser from Phase 4's real-device testing. Flagged in `ROADMAP.md`, needs a decision before Phase 4, not a Foundation-module fix.
+- No cross-user RLS test (needs real authenticated users — now unblocked by the `auth` module, should happen there or in `persistence`).
+- Preview deployment URLs are behind Vercel Deployment Protection (SSO) by default — will block a logged-out phone browser from Phase 4's real-device testing. Flagged in `ROADMAP.md`, needs a decision before Phase 4.
+- **Discovered during `auth` module Specify:** the root-level `proxy.ts` has been completely inert since this plan was written — Next 16 requires it alongside `app/` (i.e. `src/proxy.ts`), not at the repo root. "Protected routes" never actually worked. Fixed as `auth`'s first task — see `SPEC-auth.md`.
+
+This plan is archived; see `tasks/plan-auth.md` for the next module.
 
 ## Risks and Mitigations
 
