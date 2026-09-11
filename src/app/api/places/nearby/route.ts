@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { nearbyPlacesQuerySchema } from "@/src/lib/schemas/places";
 import { rankPlaces, type OverpassElement } from "@/src/lib/places/rank";
+import { createOverpassQuery } from "@/src/lib/places/query";
 
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   }
 
   const { lat, lng, radiusMeters } = query.data;
-  const overpassQuery = `[out:json][timeout:25];(node["tourism"~"attraction|museum|artwork|viewpoint"](around:${radiusMeters},${lat},${lng});node["historic"](around:${radiusMeters},${lat},${lng});way["tourism"~"attraction|museum|artwork|viewpoint"](around:${radiusMeters},${lat},${lng});way["historic"](around:${radiusMeters},${lat},${lng}););out center;`;
+  const overpassQuery = createOverpassQuery({ lat, lng, radiusMeters })
 
   let response: Response;
   try {
