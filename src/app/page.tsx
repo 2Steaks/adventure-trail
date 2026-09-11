@@ -1,4 +1,5 @@
 import { Button } from "@/src/components/ui/button";
+import { LogoutButton } from "@/src/components/auth/logout-button";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
           adventure.
         </p>
         <Button className="mt-6 w-full">Start Adventure</Button>
+        <LogoutButton />
       </div>
     </main>
   );

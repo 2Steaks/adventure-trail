@@ -15,16 +15,19 @@ Out of scope (per `ROADMAP.md`'s decision log): email verification, password res
 
 Next.js 16 renamed `middleware.ts` to `proxy.ts` and requires it to sit **at the same level as `app/`**. This project's `app/` lives at `src/app/`, but `proxy.ts` sits at the repo root — one level too high. Confirmed by testing: moving it to `src/proxy.ts` locally changed an unauthenticated request to `/` from a silent `200` to the expected `307 → /login`. Every "protected route" claim in `SPEC-foundation.md`'s success criteria was true on paper and false in practice until now — nothing has ever actually been protected, in dev or in the live Foundation deployment.
 
-This is the `auth` module's first task, not a separate hotfix: delete the root `proxy.ts`, keep only `src/proxy.ts`, and add `/register` to its public-path allowlist (currently only `/login`/`/auth` are excluded — without this, an unauthenticated visitor trying to register gets redirected to `/login` in a loop).
+This is the `auth` module's first task, not a separate hotfix: delete the root `proxy.ts`, keep only `src/proxy.ts`, and add `/register` **and `/api/auth`** to its public-path allowlist (currently only `/login`/`/auth` are excluded — without `/register`, an unauthenticated visitor trying to register gets redirected to `/login` in a loop; without `/api/auth`, the register/login/logout Route Handlers themselves get redirected before they ever run, since the Proxy protects everything by default, API routes included).
+
+**Also found while implementing:** this Supabase project has email confirmation enabled by default (`mailer_autoconfirm: false`), which would block a newly registered user from logging in immediately — contradicting the bare-minimum decision. Fixed via a scoped Management API call rather than `supabase config push` (which would push unrelated local-vs-remote diffs too). See `.scratch/auth/issues/04-register.md` for details.
 
 **But the Proxy fix alone is not the authorization boundary.** Next 16 renamed Middleware to Proxy specifically to discourage over-relying on it — it explicitly recommends Proxy be used "as a last resort," and its own Data Security guide states: *"Always verify authentication and authorization inside each Server Function rather than relying on Proxy alone."* Unlike Express middleware (a composable per-route chain), Next supports exactly one Proxy file for the whole app, meant for lightweight, edge-style concerns — redirects, header/cookie tweaks, *optimistic* "probably logged in" checks. A matcher change or a route move can silently remove its coverage. So: the Proxy redirect is a UX nicety (bounce a logged-out user before they see a flash of protected content); real enforcement has to live inside each Route Handler that needs it. This module adds a small `requireUser()` helper for exactly that, for `persistence` and every later module's protected API routes to use — not just this module's own (public) register/login/logout routes.
 
 ## Tech Stack
 
-No new dependencies. Reuses what Foundation already installed:
+Reuses what Foundation already installed, plus two new form-handling dependencies added mid-module at the user's request:
 
 - Supabase Auth via the existing server client (`src/lib/supabase/client.ts`) — `signUp`, `signInWithPassword`, `signOut`
-- Zod for request validation (already installed, unused until now)
+- Zod for request *and* form validation (already installed, unused until now)
+- **`react-hook-form` + `@hookform/resolvers`** (new): register/login forms use `useForm({ resolver: zodResolver(authCredentialsSchema) })` instead of manual `useState` + hand-rolled validation. Same Zod schema drives both the client-side field errors and the server-side request validation — one source of truth, not two. This is the pattern for every form this project builds going forward (e.g. `persistence`'s create-adventure form), not a one-off for auth.
 - TanStack Query (`useMutation`) for the register/login/logout calls from the frontend
 - No browser-side Supabase client — per `ROADMAP.md`'s architecture decision, the frontend calls Next.js Route Handlers, which use the server client
 
@@ -145,17 +148,17 @@ export type AuthCredentials = z.infer<typeof authCredentialsSchema>;
 
 ## Success Criteria
 
-- [ ] `src/proxy.ts` exists as the only `proxy.ts` in the project; root-level `proxy.ts` deleted
-- [ ] Unauthenticated request to `/` redirects (`307`) to `/login` — verified live, not just in a test
-- [ ] Unauthenticated requests to `/login` and `/register` return `200`, no redirect
-- [ ] `/register`: email+password form, `POST /api/auth/register`, calls `signUp`; on success, redirects to `/`
-- [ ] `/login`: email+password form, `POST /api/auth/login`, calls `signInWithPassword`; on success redirects to `/`; on invalid credentials, shows Supabase's returned error message inline
-- [ ] A visible logout action calls `POST /api/auth/logout` (`signOut`), then redirects to `/login`
-- [ ] Session persists across a browser restart (cookie-based via `@supabase/ssr` — manual verification)
-- [ ] `authCredentialsSchema` tested (valid case, invalid email, short password), TDD
-- [ ] Proxy matcher regression test passes
-- [ ] `requireUser()` exists in `src/lib/supabase/require-user.ts`, tested for both the authenticated and unauthenticated cases, ready for `persistence`/later modules' protected API routes to call
-- [ ] `pnpm build`/`lint`/`test` pass; CI green on the PR
+- [x] `src/proxy.ts` exists as the only `proxy.ts` in the project; root-level `proxy.ts` deleted
+- [x] Unauthenticated request to `/` redirects (`307`) to `/login` — verified live, not just in a test
+- [x] Unauthenticated requests to `/login` and `/register` return `200`, no redirect
+- [x] `/register`: email+password form, `POST /api/auth/register`, calls `signUp`; on success, redirects to `/`
+- [x] `/login`: email+password form, `POST /api/auth/login`, calls `signInWithPassword`; on success redirects to `/`; on invalid credentials, shows Supabase's returned error message inline
+- [x] A visible logout action calls `POST /api/auth/logout` (`signOut`), then redirects to `/login`
+- [x] Session persists across a browser restart (cookie-based via `@supabase/ssr` — manual verification)
+- [x] `authCredentialsSchema` tested (valid case, invalid email, short password), TDD
+- [x] Proxy matcher regression test passes
+- [x] `requireUser()` exists in `src/lib/supabase/require-user.ts`, tested for both the authenticated and unauthenticated cases, ready for `persistence`/later modules' protected API routes to call
+- [x] `pnpm build`/`lint`/`test` pass; CI green on the PR
 
 ## Open Questions
 
