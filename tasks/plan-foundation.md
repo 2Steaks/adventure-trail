@@ -60,6 +60,7 @@ All three PRs (#2, #3, #4) merged. **Known gaps carried forward to later modules
 - No cross-user RLS test (needs real authenticated users — now unblocked by the `auth` module, should happen there or in `persistence`).
 - Preview deployment URLs are behind Vercel Deployment Protection (SSO) by default — will block a logged-out phone browser from Phase 4's real-device testing. Flagged in `ROADMAP.md`, needs a decision before Phase 4.
 - **Discovered during `auth` module Specify:** the root-level `proxy.ts` has been completely inert since this plan was written — Next 16 requires it alongside `app/` (i.e. `src/proxy.ts`), not at the repo root. "Protected routes" never actually worked. Fixed as `auth`'s first task — see `SPEC-auth.md`.
+- **Discovered while verifying that fix live:** Vercel had zero environment variables configured (task 09 deployed successfully without them only because the inert Proxy never touched Supabase). Added `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` to Vercel across all three environments as part of `auth`'s task 01 — a Foundation-era gap, fixed retroactively.
 
 This plan is archived; see `tasks/plan-auth.md` for the next module.
 
