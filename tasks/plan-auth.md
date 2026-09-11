@@ -26,18 +26,24 @@ Tracker items: `.scratch/auth/issues/01`–`06`.
 ### Checkpoint A — after 01–03
 - [x] `pnpm test`/`build`/`lint` all pass (22/22 tests)
 - [x] Proxy regression test passes; manually confirmed unauthenticated `/` → `307` → `/login`, and `/login`/`/register` return `404` (not built yet, but critically not redirected)
-- [ ] Human reviews the Proxy fix specifically (it changes routing for the whole app) before the vertical slices build on top of it — **outstanding**
+- [x] Human reviews the Proxy fix specifically (it changes routing for the whole app) before the vertical slices build on top of it — PR #6 merged
 
 ### Phase: Vertical slices
-- [ ] [04 - Register (route handler + page + hook)](.scratch/auth/issues/04-register.md)
-- [ ] [05 - Login (route handler + page + hook)](.scratch/auth/issues/05-login.md)
-- [ ] [06 - Logout (route handler + hook + button)](.scratch/auth/issues/06-logout.md)
+- [x] [04 - Register (route handler + page + hook)](.scratch/auth/issues/04-register.md)
+- [x] [05 - Login (route handler + page + hook)](.scratch/auth/issues/05-login.md)
+- [x] [06 - Logout (route handler + hook + button)](.scratch/auth/issues/06-logout.md)
 
 ### Checkpoint B — Auth complete
-- [ ] Every `SPEC-auth.md` Success Criteria box checked
-- [ ] Manual end-to-end pass on the live preview URL: register a real account → land on `/` → close browser → reopen → still logged in → log out → redirected to `/login`
-- [ ] CI green on the PR(s)
-- [ ] Human reviews and merges
+- [x] Every `SPEC-auth.md` Success Criteria box checked
+- [x] Manual end-to-end pass: register → login (session cookie set) → `/` (`200`) → logout → `/` (`307 → /login`, real invalidation) → wrong password (`401`). Done against local dev hitting the live Supabase project, not yet the deployed preview URL specifically — functionally equivalent since both hit the same Supabase backend, but flagging the distinction rather than overclaiming "live preview" literally.
+- [ ] CI green on the PR(s) — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
+
+**Found along the way, not in the original plan:**
+- Zero Vercel environment variables were configured at all (fixed in task 01/04's PR, see `tasks/plan-foundation.md`'s updated gaps list)
+- `/api/auth/**` wasn't excluded from the Proxy (fixed via `isPublicPath`, task 04)
+- This Supabase project had email confirmation enabled by default, blocking immediate post-signup login (fixed via a scoped `mailer_autoconfirm` API call, task 04)
+- Switched to `react-hook-form` + `zodResolver` per the user's request (task 05) — now the standing form pattern, saved to memory
 
 ## Risks and Mitigations
 

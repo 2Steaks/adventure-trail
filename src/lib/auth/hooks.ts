@@ -1,11 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import type { AuthCredentials } from "@/src/lib/schemas/auth";
 
-async function postAuth(path: string, credentials: AuthCredentials) {
+async function postAuth(path: string, credentials?: AuthCredentials) {
   const response = await fetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(credentials),
+    body: credentials ? JSON.stringify(credentials) : undefined,
   });
 
   const body = await response.json();
@@ -33,12 +33,6 @@ export function useLogin() {
 
 export function useLogout() {
   return useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-      if (!response.ok) {
-        throw new Error("Something went wrong.");
-      }
-      return response.json();
-    },
+    mutationFn: () => postAuth("/api/auth/logout"),
   });
 }

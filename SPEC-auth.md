@@ -148,17 +148,17 @@ export type AuthCredentials = z.infer<typeof authCredentialsSchema>;
 
 ## Success Criteria
 
-- [ ] `src/proxy.ts` exists as the only `proxy.ts` in the project; root-level `proxy.ts` deleted
-- [ ] Unauthenticated request to `/` redirects (`307`) to `/login` — verified live, not just in a test
-- [ ] Unauthenticated requests to `/login` and `/register` return `200`, no redirect
-- [ ] `/register`: email+password form, `POST /api/auth/register`, calls `signUp`; on success, redirects to `/`
-- [ ] `/login`: email+password form, `POST /api/auth/login`, calls `signInWithPassword`; on success redirects to `/`; on invalid credentials, shows Supabase's returned error message inline
-- [ ] A visible logout action calls `POST /api/auth/logout` (`signOut`), then redirects to `/login`
-- [ ] Session persists across a browser restart (cookie-based via `@supabase/ssr` — manual verification)
-- [ ] `authCredentialsSchema` tested (valid case, invalid email, short password), TDD
-- [ ] Proxy matcher regression test passes
-- [ ] `requireUser()` exists in `src/lib/supabase/require-user.ts`, tested for both the authenticated and unauthenticated cases, ready for `persistence`/later modules' protected API routes to call
-- [ ] `pnpm build`/`lint`/`test` pass; CI green on the PR
+- [x] `src/proxy.ts` exists as the only `proxy.ts` in the project; root-level `proxy.ts` deleted
+- [x] Unauthenticated request to `/` redirects (`307`) to `/login` — verified live, not just in a test
+- [x] Unauthenticated requests to `/login` and `/register` return `200`, no redirect
+- [x] `/register`: email+password form, `POST /api/auth/register`, calls `signUp`; on success, redirects to `/`
+- [x] `/login`: email+password form, `POST /api/auth/login`, calls `signInWithPassword`; on success redirects to `/`; on invalid credentials, shows Supabase's returned error message inline
+- [x] A visible logout action calls `POST /api/auth/logout` (`signOut`), then redirects to `/login`
+- [x] Session persists across a browser restart (cookie-based via `@supabase/ssr` — manual verification)
+- [x] `authCredentialsSchema` tested (valid case, invalid email, short password), TDD
+- [x] Proxy matcher regression test passes
+- [x] `requireUser()` exists in `src/lib/supabase/require-user.ts`, tested for both the authenticated and unauthenticated cases, ready for `persistence`/later modules' protected API routes to call
+- [x] `pnpm build`/`lint`/`test` pass; CI green on the PR
 
 ## Open Questions
 

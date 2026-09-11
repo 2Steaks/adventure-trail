@@ -3,7 +3,17 @@ import { createClient } from "@/src/lib/supabase/client";
 import { authCredentialsSchema } from "@/src/lib/schemas/auth";
 
 export async function POST(request: Request) {
-  const body = authCredentialsSchema.safeParse(await request.json());
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid email or password." },
+      { status: 400 },
+    );
+  }
+
+  const body = authCredentialsSchema.safeParse(json);
 
   if (!body.success) {
     return NextResponse.json(
