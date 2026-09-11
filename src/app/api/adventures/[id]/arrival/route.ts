@@ -28,7 +28,7 @@ export async function POST(
 
   const { data: adventure, error: adventureError } = await supabase
     .from("adventures")
-    .select("id")
+    .select("id, status, game_states(current_quest_id)")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -39,14 +39,28 @@ export async function POST(
       { status: 400 },
     );
   }
-  if (!adventure) {
+
+  // game_states.adventure_id is that table's primary key, so this embed is
+  // a to-one relationship and returns a single object at runtime — even
+  // though supabase-js's untyped-client inference (no generated DB types
+  // in this project) mistypes it as an array. Confirmed live.
+  const currentQuestId = (
+    adventure?.game_states as unknown as { current_quest_id: string | null } | null
+  )?.current_quest_id;
+
+  if (!adventure || !currentQuestId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Resolved via game_states.current_quest_id, not "the adventure's one
+  // quest" — an adventure can have more than one quest once ai-planner
+  // ships (adventures.route.ts's questsTotal/questsCompleted already
+  // assume this), and current_quest_id is the source of truth for which
+  // one is active.
   const { data: quest, error: questError } = await supabase
     .from("quests")
     .select("*")
-    .eq("adventure_id", id)
+    .eq("id", currentQuestId)
     .maybeSingle();
 
   if (questError) {
@@ -62,27 +76,35 @@ export async function POST(
     radiusMeters: quest.radius_meters,
   });
 
-  if (result.arrived && quest.status !== "completed") {
-    const { error: questUpdateError } = await supabase
-      .from("quests")
-      .update({ status: "completed" })
-      .eq("id", quest.id);
-    if (questUpdateError) {
-      return NextResponse.json(
-        { error: questUpdateError.message },
-        { status: 400 },
-      );
+  if (result.arrived) {
+    // Each write is gated on its own current status, not on the other
+    // table's — so a partial failure (e.g. the quest update succeeds but
+    // the adventure update doesn't) is recoverable on retry, rather than
+    // permanently skipped because "the quest already looks completed."
+    if (quest.status !== "completed") {
+      const { error: questUpdateError } = await supabase
+        .from("quests")
+        .update({ status: "completed" })
+        .eq("id", quest.id);
+      if (questUpdateError) {
+        return NextResponse.json(
+          { error: questUpdateError.message },
+          { status: 400 },
+        );
+      }
     }
 
-    const { error: adventureUpdateError } = await supabase
-      .from("adventures")
-      .update({ status: "completed" })
-      .eq("id", id);
-    if (adventureUpdateError) {
-      return NextResponse.json(
-        { error: adventureUpdateError.message },
-        { status: 400 },
-      );
+    if (adventure.status !== "completed") {
+      const { error: adventureUpdateError } = await supabase
+        .from("adventures")
+        .update({ status: "completed" })
+        .eq("id", id);
+      if (adventureUpdateError) {
+        return NextResponse.json(
+          { error: adventureUpdateError.message },
+          { status: 400 },
+        );
+      }
     }
   }
 
