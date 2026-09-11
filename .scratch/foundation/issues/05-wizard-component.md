@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: 01
 
@@ -7,12 +7,16 @@ Blocked by: 01
 **Description:** Build the state-driven `Wizard` placeholder component per `SPEC-foundation.md`'s Code Style section. No art asset — a bordered box labelled with the current state. Follow red-green-refactor: write the test first.
 
 **Acceptance criteria:**
-- [ ] `Wizard` accepts a `state` prop typed to the six values (`idle`, `thinking`, `quest-available`, `waiting`, `quest-completed`, `unexpected-event`)
-- [ ] Renders `aria-label="Wizard: <state>"` for each value
-- [ ] Test was written and observed failing before the component existed
+- [x] `Wizard` accepts a `state` prop typed to the six values (`idle`, `thinking`, `quest-available`, `waiting`, `quest-completed`, `unexpected-event`)
+- [x] Renders `aria-label="Wizard: <state>"` for each value
+- [x] Test was written and observed failing before the component existed (confirmed red: `Failed to resolve import "./Wizard"`)
 
 **Verification:**
-- [ ] `pnpm test` — new Wizard test passes, and did fail before implementation (TDD, not just written test-and-code together)
+- [x] `pnpm test` — 6/6 pass (one per state, via `it.each`)
+
+## Answer
+
+Done, straightforward TDD — no deviations.
 
 **Dependencies:** 01
 
