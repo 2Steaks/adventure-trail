@@ -10,6 +10,7 @@ import {
   serializeAdventure,
   type AdventureRow,
 } from "@/src/lib/adventures/serialize";
+import { adventuresRepository } from "@/src/repositories/adventures/adventures";
 
 // Arrival radius isn't LLM-controlled — a fixed, reliable value the same way
 // every quest so far has used, independent of which landmark gets picked.
@@ -17,15 +18,12 @@ const QUEST_RADIUS_METERS = 40;
 
 export async function GET() {
   const { user, supabase } = await requireUser();
+  
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
-    .from("adventures")
-    .select("*, quests(status)")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  const { data, error } = await adventuresRepository.getAdventuresByUserId(supabase, user.id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
@@ -45,6 +43,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const { user, supabase } = await requireUser();
+
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -120,21 +119,17 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  const { data: adventure, error: adventureError } = await supabase
-    .from("adventures")
-    .insert({
-      user_id: user.id,
-      title: plan.title,
-      theme,
-      age_min: ageMin,
-      age_max: ageMax,
-      duration_minutes: durationMinutes,
-      max_distance_meters: maxDistanceMeters,
-      starting_lat: startingLat,
-      starting_lng: startingLng,
-    })
-    .select()
-    .single();
+  const { data: adventure, error: adventureError } = await adventuresRepository.createAdventure(supabase, {
+    user_id: user.id,
+    title: plan.title,
+    theme,
+    age_min: ageMin,
+    age_max: ageMax,
+    duration_minutes: durationMinutes,
+    max_distance_meters: maxDistanceMeters,
+    starting_lat: startingLat,
+    starting_lng: startingLng,
+  })
 
   if (adventureError) {
     return NextResponse.json(
