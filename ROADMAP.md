@@ -13,6 +13,16 @@ This is the whole-project phased plan, derived from `CAPABILITY_MAP.md`'s module
 - **Overpass reliability:** accept the public API's rate-limit/flakiness risk. No caching layer. On failure, show a simple "couldn't find nearby landmarks, try again" retry state. Revisit only if the risk is actually hit during use, not preemptively.
 - **Continuous deployment:** Vercel deploy starts in **Phase 1**, not at the end. Every phase from there on is checked against a live preview URL (needed for real-phone geolocation testing), not just localhost.
 
+## Delivery workflow (PRs, review, TDD)
+
+- **One PR per module, not one PR per phase-number.** Most phases map 1:1 to a module and get exactly one PR. Phase 3 bundles two independent modules (`persistence`, `places`) — those ship as **two separate PRs**, since they touch disjoint files and reviewing them together would just make the diff harder to read for no benefit. They can merge in either order; both must be merged before Phase 4 starts.
+- **Branch naming:** `feat/<module-id>` off `main` (e.g. `feat/foundation`, `feat/auth`). The already-open `chore/project-setup-and-plan` PR is a one-time exception — it carries the planning artifacts (`CAPABILITY_MAP.md`, `SPEC-foundation.md`, this file) plus the pre-existing `src/` scaffold reorg, not the Foundation module's actual implementation work. Foundation's real implementation (shadcn setup, Tailwind pixel-art theme, TanStack Query provider, Wizard component, DB migration, CI workflow) ships as its own `feat/foundation` PR on top of it.
+- **Every module PR must be:**
+  - **Scoped** — one module, matching its `SPEC-<module-id>.md`. PR description checks off that spec's Success Criteria as a checklist.
+  - **Reviewable** — small enough to read in one sitting; if a module's implementation is going to sprawl, split it into stacked PRs rather than one giant diff (see `incremental-implementation`).
+  - **Testable** — CI must pass before merge. A GitHub Actions workflow (`.github/workflows/ci.yml`, added in the `foundation` PR) runs `pnpm lint`, `pnpm test`, `pnpm build` on every PR. No merging on a red build.
+- **TDD, no exceptions for real logic:** every module's Implement step follows red → green → refactor (`test-driven-development`) — write the failing test first, write the minimum code to pass it, then refactor. This applies to anything with actual logic (Haversine, Zod schemas, arrival detection, action validation, RLS-scoped queries, LLM output validation). It does not apply to pure config/scaffolding with nothing to assert on (running `shadcn init`, writing a `.env.example`, installing a dependency) — don't invent a test for those.
+
 ## Decision log (from grilling session)
 
 - Deleted `src/features/`, `src/server/`, `src/pages/`, `src/app/adventure/[id]/` — empty, untracked leftover scaffolding with no bearing on the plan.

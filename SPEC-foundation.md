@@ -42,6 +42,8 @@ Apply migration: supabase db push
 Deploy: vercel --prod   # or via Vercel's Git integration once the repo is connected
 ```
 
+This module also adds `.github/workflows/ci.yml`, running `pnpm lint`, `pnpm test`, `pnpm build` on every PR — the mechanism that makes every later module's PR actually "testable" rather than a promise.
+
 `package.json` needs `"test"` and `"test:watch"` scripts added; `vitest`, `@vitejs/plugin-react`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom` added as dev dependencies.
 
 ## Project Structure
@@ -116,7 +118,7 @@ Tailwind v4 tokens go in `globals.css` under `@theme`, not a `tailwind.config.js
 
 ## Boundaries
 
-- **Always:** mobile-first Tailwind classes (base styles target ~375px viewport); enable RLS on every new table in the same migration that creates it; run `pnpm lint` and `pnpm test` before treating a task as done; keep `src/` layout consistent with `CAPABILITY_MAP.md` module ownership.
+- **Always:** mobile-first Tailwind classes (base styles target ~375px viewport); enable RLS on every new table in the same migration that creates it; run `pnpm lint` and `pnpm test` before treating a task as done; keep `src/` layout consistent with `CAPABILITY_MAP.md` module ownership; ship this module's implementation as its own `feat/foundation` PR (see `ROADMAP.md` Delivery workflow), not folded into other modules' work; write a failing test before implementation code for anything with real logic (the `Wizard` state rendering, the Supabase client factories' error-on-missing-env behavior) — pure scaffolding steps (shadcn init, env file, dependency install) don't need an invented test.
 - **Ask first:** any dependency beyond what's listed in Tech Stack; shadcn theme/style choice beyond a minimal pixel-art restyle; any change to the `supabase/migrations/<timestamp>_init.sql` schema after it has been applied to a shared/remote Supabase project (migrations are append-only across modules).
 - **Never:** use Prisma; use `localStorage` or Zustand; generate wizard artwork dynamically; commit `.env`; run `supabase db reset` against a linked remote project without explicit confirmation; edit `node_modules/` (including the auto-regenerated AGENTS.md block, which is expected to reappear — see `AGENTS.md`).
 
@@ -132,6 +134,8 @@ Tailwind v4 tokens go in `globals.css` under `@theme`, not a `tailwind.config.js
 - [ ] `Wizard` component exists, accepts the six-value `state` prop, renders a bordered placeholder (no art asset) labelled with the state
 - [ ] Supabase CLI installed; you have run `supabase login`/`supabase link` (manual — I flag this as the remaining blocker if it hasn't happened)
 - [ ] Repo connected to Vercel; the Foundation shell is reachable on a live preview/production URL, not just localhost
+- [ ] `.github/workflows/ci.yml` exists and runs `pnpm lint`, `pnpm test`, `pnpm build` on pull requests
+- [ ] This module's implementation lands as its own `feat/foundation` PR against `main`, separate from the planning-artifacts PR
 
 ## Open Questions
 
