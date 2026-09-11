@@ -15,7 +15,7 @@ Out of scope for this module: actual auth flows, adventure/quest CRUD, OSM/LLM i
 
 - Next.js 16.3.4 (App Router), React 19.2.8, TypeScript 5 — already pinned in `package.json`
 - Tailwind CSS 4 (CSS-based `@theme`, no `tailwind.config.js`) — already installed
-- shadcn/ui — not yet installed; this module runs `pnpm dlx shadcn@latest init`
+- shadcn/ui (`shadcn@4.21.0`) — installed via `pnpm dlx shadcn@latest init --defaults --yes`. Note: this CLI version dropped the old `new-york`/`default` style + base-color system for named presets (Nova, Vega, Maia, ...) and uses Base UI (`@base-ui/react`) + the `cn` npm package instead of Radix + a generated `lib/utils.ts` — real API drift from what `ROADMAP.md` assumed, resolved by using the CLI's own default preset (`base-nova`) since the specific choice was already agreed to be inert (see `.scratch/foundation/issues/02-shadcn-init-pixel-theme.md`)
 - TanStack Query — not yet installed
 - Supabase Auth + Postgres via `@supabase/ssr` + `@supabase/supabase-js` — already installed, client/proxy already scaffolded in `src/lib/supabase/`
 - Zod — not yet installed
