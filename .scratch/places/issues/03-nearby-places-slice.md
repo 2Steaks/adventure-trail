@@ -18,8 +18,14 @@ Blocked by: 01, 02
 - [x] `/places/nearby` renders the button and, given a location, renders the ranked list — verified via the API + page-shell HTML (see Verification's browser-testing gap below)
 
 **Verification:**
-- [x] `pnpm build`/`lint`/`test` pass (42/42)
+- [x] `pnpm build`/`lint`/`test` pass (43/43)
 - [x] Manual: registered a real test account against local dev; unauthenticated `curl` to the route got `307` (Proxy, not a public path); missing/out-of-range `lat`/`lng` got `400`; a valid request against Trafalgar Square's real coordinates returned real landmarks (Nelson's Column, the plinth lions, Fourth Plinth) sorted nearest-first and capped at 10 — confirmed twice, with one subsequent `502` demonstrating the accepted-flakiness path also works cleanly
+
+**Four more issues found by code review after this task first shipped, all fixed:**
+1. The `null`-only preprocess fix from bug 1 above didn't cover an empty/whitespace query string (`?lat=`) — `z.coerce.number()` turns `""` into `0` too. Widened the preprocess (`blankToUndefined`) to cover both, with a new regression test; re-verified live (`?lat=&lng=` now `400`).
+2. A malformed/truncated `200` response from Overpass (it streams output and can hit internal limits mid-generation) would throw unhandled inside `response.json()`, bypassing the documented `502`. Wrapped in `try`/`catch`.
+3. `getCurrentPosition()` had no timeout, so a stalled GPS fix could leave the mutation pending forever with no way to retry short of a reload. Added a `10s` timeout.
+4. `GeolocationPositionError.message` can be empty on some browsers, and the page renders it directly — added a code-to-message map (`PERMISSION_DENIED`/`POSITION_UNAVAILABLE`/`TIMEOUT`) so the error is never blank.
 - [ ] **Not verified — no browser automation available this session:** the actual click-button-grant-permission browser interaction. Confirmed everything server-side (the API, the schema, the ranking) and that the page shell renders and contains the button, but did not drive a real geolocation permission grant end-to-end in a browser. Flagging this explicitly rather than claiming full coverage — worth a real hands-on check on an actual device before calling `SPEC-places.md`'s Phase 3 exit checkpoint fully proven.
 
 **Dependencies:** 01, 02

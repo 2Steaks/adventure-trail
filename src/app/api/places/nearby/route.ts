@@ -49,9 +49,16 @@ export async function GET(request: Request) {
     );
   }
 
-  const { elements } = (await response.json()) as {
-    elements: OverpassElement[];
-  };
+  let elements: OverpassElement[];
+  try {
+    ({ elements } = (await response.json()) as { elements: OverpassElement[] });
+  } catch {
+    return NextResponse.json(
+      { error: "Couldn't find nearby landmarks. Try again." },
+      { status: 502 },
+    );
+  }
+
   const places = rankPlaces({ latitude: lat, longitude: lng }, elements);
 
   return NextResponse.json({ places });

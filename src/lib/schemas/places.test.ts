@@ -36,6 +36,15 @@ describe("nearbyPlacesQuerySchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects an empty or whitespace-only lat/lng, not silently coercing to 0,0", () => {
+    const result = nearbyPlacesQuerySchema.safeParse({
+      lat: "",
+      lng: "  ",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("defaults radiusMeters to 1000 when omitted", () => {
     const result = nearbyPlacesQuerySchema.safeParse({
       lat: "51.508",
