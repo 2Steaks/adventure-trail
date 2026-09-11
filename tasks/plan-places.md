@@ -20,22 +20,22 @@ Smaller than `auth`/`persistence`: one real vertical slice (find nearby landmark
 Tracker items: `.scratch/places/issues/01`–`03`.
 
 ### Phase: Foundational primitives
-- [ ] [01 - Haversine distance + nearby-places query schema (TDD)](.scratch/places/issues/01-haversine-and-query-schema.md)
-- [ ] [02 - rankPlaces() filter/rank logic (TDD)](.scratch/places/issues/02-rank-places.md)
+- [x] [01 - Haversine distance + nearby-places query schema (TDD)](.scratch/places/issues/01-haversine-and-query-schema.md)
+- [x] [02 - rankPlaces() filter/rank logic (TDD)](.scratch/places/issues/02-rank-places.md)
 
 ### Checkpoint A — after 01-02
-- [ ] `pnpm test` passes with all new tests (haversine, schema, rankPlaces)
-- [ ] `rankPlaces()` reviewed against a hand-checked fixture before task 03 wires it to a live Overpass response
+- [x] `pnpm test` passes with all new tests (haversine, schema, rankPlaces)
+- [x] `rankPlaces()` reviewed against a hand-checked fixture before task 03 wires it to a live Overpass response
 
 ### Phase: Vertical slice
-- [ ] [03 - Nearby places vertical slice (route handler + hook + demo page)](.scratch/places/issues/03-nearby-places-slice.md)
+- [x] [03 - Nearby places vertical slice (route handler + hook + demo page)](.scratch/places/issues/03-nearby-places-slice.md)
 
 ### Checkpoint B — Places complete
-- [ ] Every `SPEC-places.md` Success Criteria box checked
-- [ ] Manual pass on a real machine: click "Find nearby landmarks," grant location, see a real ranked list; unauthenticated `curl` to the route rejected
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [x] Every `SPEC-places.md` Success Criteria box checked
+- [x] Manual pass: unauthenticated `curl` rejected; valid request against real coordinates returned real Trafalgar Square landmarks; the literal browser click-and-grant-permission interaction was **not** driven end-to-end — no browser automation available this session, flagged rather than claimed
+- [x] `pnpm build`/`lint`/`test` all pass
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 

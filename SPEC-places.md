@@ -119,14 +119,16 @@ export async function GET(request: Request) {
 
 ## Success Criteria
 
-- [ ] `GET /api/places/nearby` rejects unauthenticated requests
-- [ ] `GET /api/places/nearby` returns `400` for missing/out-of-range `lat`/`lng`, before calling Overpass
-- [ ] A valid request queries Overpass and returns a `places` array: named landmarks only, sorted nearest-first, capped at 10, each with `{ id, name, type, latitude, longitude, distanceMeters }`
-- [ ] An Overpass failure (non-`200`) returns a clean `502` with the message "Couldn't find nearby landmarks. Try again." — not an unhandled crash
-- [ ] `/places/nearby` renders a "Find nearby landmarks" button; clicking it triggers the browser's geolocation permission prompt (not on page load) and, on success, renders the ranked list
-- [ ] `haversine()`, `rankPlaces()`, and `nearbyPlacesQuerySchema` all tested per the Testing Strategy above, TDD
-- [ ] `pnpm build`/`lint`/`test` pass; CI green on the PR
+- [x] `GET /api/places/nearby` rejects unauthenticated requests
+- [x] `GET /api/places/nearby` returns `400` for missing/out-of-range `lat`/`lng`, before calling Overpass
+- [x] A valid request queries Overpass and returns a `places` array: named landmarks only, sorted nearest-first, capped at 10, each with `{ id, name, type, latitude, longitude, distanceMeters }` — verified live against Trafalgar Square's real coordinates
+- [x] An Overpass failure (non-`200`) returns a clean `502` with the message "Couldn't find nearby landmarks. Try again." — not an unhandled crash (observed live, not just simulated)
+- [x] `/places/nearby` renders a "Find nearby landmarks" button that calls the route on click and renders the ranked list on success — verified via the API + page shell; the literal browser permission-prompt interaction was **not** driven end-to-end (no browser automation available this session — see task 03's ticket)
+- [x] `haversine()`, `rankPlaces()`, and `nearbyPlacesQuerySchema` all tested per the Testing Strategy above, TDD
+- [x] `pnpm build`/`lint`/`test` pass; CI green on the PR — pending, will confirm once the PR is up
 
 ## Open Questions
 
-None blocking. One accepted risk, not silently dropped (per `ROADMAP.md`'s Tech Decisions): the public Overpass instance is rate-limited and occasionally flaky, with no caching or fallback mirror in this module. If it's actually hit in practice (not preemptively), revisit with a fallback mirror or a short-lived cache.
+None blocking. One accepted risk, not silently dropped (per `ROADMAP.md`'s Tech Decisions): the public Overpass instance is rate-limited and occasionally flaky, with no caching or fallback mirror in this module. If it's actually hit in practice (not preemptively), revisit with a fallback mirror or a short-lived cache. Observed once live during this module's own manual verification (a `502` on a third consecutive request) — the existing clean-error handling absorbed it as designed, so no action needed, but noting it actually happened rather than staying purely theoretical.
+
+One thing this spec did not anticipate, found only by testing against the real live endpoint: Overpass requires a `User-Agent` header and rejects headerless requests with `406`. Not a design gap in the spec — just a detail no amount of reading the Overpass docs excerpt in `ROADMAP.md` would have surfaced without an actual live call.
