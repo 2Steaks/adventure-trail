@@ -25,32 +25,33 @@ Tracker items: `.scratch/ai-planner/issues/01`–`05`.
 - [ ] [03 - Extract fetchNearbyPlaces() (refactor)](.scratch/ai-planner/issues/03-extract-fetch-nearby-places.md)
 
 ### Checkpoint A — after 01-03
-- [ ] `pnpm test` passes — all new schema/validation tests, `places`' existing tests still green after the refactor
-- [ ] No live Anthropic calls made yet; nothing billed so far
+- [x] `pnpm test` passes — all new schema/validation tests, `places`' existing tests still green after the refactor
+- [x] No live Anthropic calls made yet; nothing billed so far
 
 ### Phase: First live integration
-- [ ] [04 - Wire generateAdventurePlan() against a real Anthropic call](.scratch/ai-planner/issues/04-wire-generate-adventure-plan.md)
+- [x] [04 - Wire generateAdventurePlan() against a real Anthropic call](.scratch/ai-planner/issues/04-wire-generate-adventure-plan.md) — implemented; live verification deferred (see below)
 
 ### Checkpoint B — after 04
-- [ ] `generateAdventurePlan()` proven against at least one real, live call
-- [ ] Live-call count for this checkpoint stayed small and deliberate — reviewed before task 05 starts making its own live calls on top
+- [ ] `generateAdventurePlan()` proven against at least one real, live call — **deferred by request.** The one attempt made hit a real Anthropic account usage limit (`AI_APICallError`, resets 2026-10-01) — a billing/account block, not a code bug. Rather than stall the module on it, live verification of both task 04 and task 05's end-to-end flow moves to a later stage; implementation of task 05 proceeds on typecheck/lint/unit-test/code-review confidence alone. **Re-verify live before treating this module as done** — this is an explicit, tracked gap, not a silently accepted one.
+- [x] Live-call count for this checkpoint stayed small and deliberate (one attempt, no retry-looping to work around the limit)
 
 ### Phase: Vertical slice
-- [ ] [05 - Real AI-planned Create Adventure (vertical slice)](.scratch/ai-planner/issues/05-create-adventure-vertical-slice.md)
+- [ ] [05 - Real AI-planned Create Adventure (vertical slice)](.scratch/ai-planner/issues/05-create-adventure-vertical-slice.md) — live verification will be deferred along with task 04's
 
 ### Checkpoint C — AI Planner complete
-- [ ] Every `SPEC-ai-planner.md` Success Criteria box checked
-- [ ] Manual pass: one real end-to-end adventure creation, confirmed via a direct DB query; `quest-gameplay`'s arrival flow confirmed working unmodified against the AI-generated quest; failure paths (no candidates, invalid body) confirmed without needing a live LLM call
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [ ] Every `SPEC-ai-planner.md` Success Criteria box checked — **not yet: the happy-path/end-to-end-generation boxes are deferred, see Checkpoint B**
+- [x] Failure paths (no candidates, invalid body, unauthenticated) confirmed live without needing a live LLM call
+- [ ] Manual pass: one real end-to-end adventure creation, confirmed via a direct DB query; `quest-gameplay`'s arrival flow confirmed working unmodified against the AI-generated quest — **deferred to a later stage**
+- [x] `pnpm build`/`lint`/`test` all pass
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Live Anthropic calls cost real money; exploratory debugging could run up an unexpected bill | Med | Free/pure logic built and tested first (tasks 01–03); live calls confined to tasks 04–05 and kept deliberately small in number, not looped |
-| `generateObject`'s retry path is hard to force live, so it might ship under-tested | Low | `invalidLocationIds()` itself is fully unit-tested (task 01) — the live call only needs to prove the SDK plumbing works, not re-prove logic already covered |
+| `generateText`/`Output.object()`'s retry path is hard to force live, so it might ship under-tested | Low | `invalidLocationIds()` itself is fully unit-tested (task 01) — the live call only needs to prove the SDK plumbing works, not re-prove logic already covered |
 | The multi-quest persistence (task 05) breaks something in `quest-gameplay` that assumed one quest | Low | Already mitigated — `quest-gameplay`'s arrival route resolves the current quest via `game_states.current_quest_id`, specifically designed for this |
 | `ANTHROPIC` env var missing in a deployed environment (Vercel preview/production) | Med | **Confirmed via `vercel env ls`: not set on Vercel at all** (only `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` exist there, across Development/Preview/Production). Local `pnpm dev` will work throughout implementation; the live Vercel preview will not, until this is added — same class of gap `auth` hit once before (`SPEC-foundation.md`'s Vercel env-vars history). Not blocking implementation, but blocking a real preview-URL exit-checkpoint verification. |
 

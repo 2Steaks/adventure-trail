@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -7,12 +7,12 @@ Blocked by: none
 **Description:** `createAdventureSchema` (`src/lib/schemas/adventure.ts`) gains required `startingLat`/`startingLng` fields (same bounds as `nearbyPlacesQuerySchema`'s `lat`/`lng`) — the real browser-obtained coordinates that replace `HARD_CODED_QUEST`'s hard-coded starting point. Zero API cost.
 
 **Acceptance criteria:**
-- [ ] Valid body (existing fields + `startingLat`/`startingLng` in range) passes
-- [ ] Out-of-range or missing `startingLat`/`startingLng` fails
-- [ ] Existing `createAdventureSchema` tests (age range, duration/distance enums) still pass unmodified
+- [x] Valid body (existing fields + `startingLat`/`startingLng` in range) passes
+- [x] Out-of-range or missing `startingLat`/`startingLng` fails
+- [x] Existing `createAdventureSchema` tests (age range, duration/distance enums) still pass unmodified
 
 **Verification:**
-- [ ] `pnpm test` passes (existing `adventure.test.ts` cases plus new ones)
+- [x] `pnpm test` passes (57/57, existing `adventure.test.ts` cases plus new ones)
 
 **Dependencies:** None
 

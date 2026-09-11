@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: 02, 03, 04
 
@@ -10,18 +10,21 @@ Blocked by: 02, 03, 04
 
 `src/lib/game/hard-coded-quest.ts` is deleted along with the last of its usage.
 
+**Live verification deferred, same as task 04, by explicit request:** the happy-path success criteria below (Success → DB rows persisted with real AI content; `quest-gameplay` working against an AI-generated quest) have **not** been exercised — they depend on `generateAdventurePlan()` actually completing, which is blocked on the Anthropic account usage limit from task 04 (resets 2026-10-01). Everything that doesn't require a live model response has been verified live.
+
 **Acceptance criteria:**
-- [ ] `POST /api/adventures` returns `400` for an invalid body (now including missing/out-of-range `startingLat`/`startingLng`), before calling Overpass or the LLM
-- [ ] No candidates found → clean `502`-class error, zero DB rows created
-- [ ] `generateAdventurePlan()` failure (after its internal retry) → clean `502`-class error, zero DB rows created
-- [ ] Success → one `adventures` row, N `quests` rows (N = however many the plan generated), one `game_states` row with `current_quest_id` = the first quest's id
-- [ ] `quest-gameplay`'s existing `/adventures/[id]` page and `POST /api/adventures/:id/arrival` work **unmodified** against the AI-generated quest
-- [ ] `HARD_CODED_QUEST` and all remaining references to it are gone
-- [ ] `/adventures/new`'s submit button triggers the geolocation prompt on click, not on page mount
+- [x] `POST /api/adventures` returns `400` for an invalid body (now including missing/out-of-range `startingLat`/`startingLng`), before calling Overpass or the LLM
+- [x] No candidates found → clean `502`-class error, zero DB rows created
+- [ ] `generateAdventurePlan()` failure (after its internal retry) → clean `502`-class error, zero DB rows created — **not yet verified live** (would need a live call that then fails, which isn't the same as never calling it — deferred along with the happy path)
+- [ ] Success → one `adventures` row, N `quests` rows (N = however many the plan generated), one `game_states` row with `current_quest_id` = the first quest's id — **deferred, not yet verified live**
+- [ ] `quest-gameplay`'s existing `/adventures/[id]` page and `POST /api/adventures/:id/arrival` work **unmodified** against the AI-generated quest — **deferred, not yet verified live**
+- [x] `HARD_CODED_QUEST` and all remaining references to it are gone
+- [x] `/adventures/new`'s submit button triggers the geolocation prompt on click, not on page mount
 
 **Verification:**
-- [ ] `pnpm build`/`lint`/`test` pass
-- [ ] Manual, deliberately bounded (real billed API calls): create one real adventure end-to-end as a logged-in test user at a real location; confirm via `supabase db query --linked` that the adventure/quests/game_state rows persisted correctly with real AI-generated content; walk through `quest-gameplay`'s existing arrival check against the first generated quest's real coordinates to confirm it still works unmodified; confirm an unauthenticated/invalid-body/no-candidates case each return their documented error with zero DB writes (these don't need a live LLM call to verify)
+- [x] `pnpm build`/`lint`/`test` pass (57/57)
+- [x] Manual (no live LLM call needed): registered a real test account; unauthenticated request → `307` (Proxy); missing `startingLat`/`startingLng` → `400` before any Overpass/LLM call; ocean coordinates (30, -40, no nearby landmarks) → clean `502`, confirmed via `GET /api/adventures` that zero rows were created; `GET /api/places/nearby` (the shared `fetchNearbyPlaces()` extraction) still returns real Trafalgar Square landmarks unchanged; `/adventures/new` page shell renders
+- [ ] Manual, deliberately bounded (real billed API calls): full happy-path create → DB persistence → `quest-gameplay` arrival check against a real AI-generated quest — **deferred to a later stage**, not yet done
 
 **Dependencies:** 02, 03, 04
 

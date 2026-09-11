@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { nearbyPlacesQuerySchema } from "@/src/lib/schemas/places";
-import { rankPlaces, type OverpassElement } from "@/src/lib/places/rank";
-import { createOverpassQuery } from "@/src/lib/places/query";
-
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+import {
+  fetchNearbyPlaces,
+  NearbyPlacesFetchError,
+} from "@/src/lib/places/fetch-nearby-places";
 
 export async function GET(request: Request) {
   const { user } = await requireUser();
@@ -18,49 +18,21 @@ export async function GET(request: Request) {
     lng: searchParams.get("lng"),
     radiusMeters: searchParams.get("radiusMeters"),
   });
+
   if (!query.success) {
-    return NextResponse.json({ error: "Invalid coordinates." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid coordinates." },
+      { status: 400 },
+    );
   }
 
-  const { lat, lng, radiusMeters } = query.data;
-  const overpassQuery = createOverpassQuery({ lat, lng, radiusMeters })
-
-  let response: Response;
   try {
-    response = await fetch(OVERPASS_URL, {
-      method: "POST",
-      headers: {
-        // Overpass's server rejects requests with no User-Agent (406),
-        // and fetch() sends none by default (unlike curl).
-        "User-Agent": "dungeon-master-ai/0.1 (places module)",
-      },
-      body: overpassQuery,
-    });
-  } catch {
-    return NextResponse.json(
-      { error: "Couldn't find nearby landmarks. Try again." },
-      { status: 502 },
-    );
+    const places = await fetchNearbyPlaces(query.data);
+    return NextResponse.json({ places });
+  } catch (error) {
+    if (error instanceof NearbyPlacesFetchError) {
+      return NextResponse.json({ error: error.message }, { status: 502 });
+    }
+    throw error;
   }
-
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: "Couldn't find nearby landmarks. Try again." },
-      { status: 502 },
-    );
-  }
-
-  let elements: OverpassElement[];
-  try {
-    ({ elements } = (await response.json()) as { elements: OverpassElement[] });
-  } catch {
-    return NextResponse.json(
-      { error: "Couldn't find nearby landmarks. Try again." },
-      { status: 502 },
-    );
-  }
-
-  const places = rankPlaces({ latitude: lat, longitude: lng }, elements);
-
-  return NextResponse.json({ places });
 }

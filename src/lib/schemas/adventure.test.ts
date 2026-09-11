@@ -7,6 +7,8 @@ const validBody = {
   ageMax: 10,
   durationMinutes: 60,
   maxDistanceMeters: 1000,
+  startingLat: 51.508,
+  startingLng: -0.1281,
 };
 
 describe("createAdventureSchema", () => {
@@ -48,6 +50,28 @@ describe("createAdventureSchema", () => {
     const result = createAdventureSchema.safeParse({
       ...validBody,
       maxDistanceMeters: 750,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects an out-of-range startingLat", () => {
+    const result = createAdventureSchema.safeParse({
+      ...validBody,
+      startingLat: 95,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a missing startingLng", () => {
+    const result = createAdventureSchema.safeParse({
+      theme: validBody.theme,
+      ageMin: validBody.ageMin,
+      ageMax: validBody.ageMax,
+      durationMinutes: validBody.durationMinutes,
+      maxDistanceMeters: validBody.maxDistanceMeters,
+      startingLat: validBody.startingLat,
     });
 
     expect(result.success).toBe(false);
