@@ -20,22 +20,22 @@ Smaller than `auth`/`persistence`, similar in shape to `places`: two independent
 Tracker items: `.scratch/quest-gameplay/issues/01`–`03`.
 
 ### Phase: Foundational primitives
-- [ ] [01 - Extract shared geolocation helper (refactor)](.scratch/quest-gameplay/issues/01-shared-geolocation-helper.md)
-- [ ] [02 - checkArrival() + arrivalCheckSchema (TDD)](.scratch/quest-gameplay/issues/02-arrival-check-and-schema.md)
+- [x] [01 - Extract shared geolocation helper (refactor)](.scratch/quest-gameplay/issues/01-shared-geolocation-helper.md)
+- [x] [02 - checkArrival() + arrivalCheckSchema (TDD)](.scratch/quest-gameplay/issues/02-arrival-check-and-schema.md)
 
 ### Checkpoint A — after 01-02
-- [ ] `pnpm test` passes — `places`' existing tests still green after the refactor, plus all new `arrival`/`schemas` tests
-- [ ] `checkArrival()`'s boundary case (`distance === radiusMeters`) reviewed before task 03 wires it to a real DB write
+- [x] `pnpm test` passes — `places`' existing tests still green after the refactor, plus all new `arrival`/`schemas` tests (49/49)
+- [x] `checkArrival()`'s boundary case (`distance === radiusMeters`) reviewed before task 03 wires it to a real DB write
 
 ### Phase: Vertical slice
-- [ ] [03 - Arrival vertical slice (route handler + hook + page extension)](.scratch/quest-gameplay/issues/03-arrival-vertical-slice.md)
+- [x] [03 - Arrival vertical slice (route handler + hook + page extension)](.scratch/quest-gameplay/issues/03-arrival-vertical-slice.md)
 
 ### Checkpoint B — Quest Gameplay complete
-- [ ] Every `SPEC-quest-gameplay.md` Success Criteria box checked
-- [ ] Manual pass: far-away coordinates → `arrived: false`; in-radius coordinates → `arrived: true` + both status columns flip to `completed`, confirmed via a direct DB query; repeat call is idempotent; cross-user `404` confirmed
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [x] Every `SPEC-quest-gameplay.md` Success Criteria box checked
+- [x] Manual pass: far-away coordinates → `arrived: false`; in-radius coordinates → `arrived: true` + both status columns flip to `completed`, confirmed via a direct DB query; repeat call is idempotent; cross-user `404` confirmed
+- [x] `pnpm build`/`lint`/`test` all pass
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 

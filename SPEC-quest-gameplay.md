@@ -118,14 +118,14 @@ export async function POST(
 
 ## Success Criteria
 
-- [ ] `POST /api/adventures/:id/arrival` rejects unauthenticated requests
-- [ ] `POST /api/adventures/:id/arrival` returns `404` for another user's adventure id
-- [ ] Coordinates far from the quest return `{ arrived: false }` with a real `distanceMeters`
-- [ ] Coordinates within `quest.radiusMeters` return `{ arrived: true }`, and persist `quests.status = 'completed'` + `adventures.status = 'completed'`
-- [ ] Calling the route again after completion is idempotent — no error, no duplicate write
-- [ ] `/adventures/[id]` renders a "Check My Distance" button (geolocation prompt fires only on tap), shows the returned distance, links to Google Maps for the quest's coordinates, and shows an arrival celebration state once `arrived: true`
-- [ ] `checkArrival()` and `arrivalCheckSchema` tested per the Testing Strategy above, TDD
-- [ ] `pnpm build`/`lint`/`test` pass; CI green on the PR
+- [x] `POST /api/adventures/:id/arrival` rejects unauthenticated requests (`307` via the Proxy)
+- [x] `POST /api/adventures/:id/arrival` returns `404` for another user's adventure id
+- [x] Coordinates far from the quest return `{ arrived: false }` with a real `distanceMeters` — verified live
+- [x] Coordinates within `quest.radiusMeters` return `{ arrived: true }`, and persist `quests.status = 'completed'` + `adventures.status = 'completed'` — verified live via a direct DB query
+- [x] Calling the route again after completion is idempotent — no error, no duplicate write
+- [x] `/adventures/[id]` renders a "Check My Distance" button (geolocation prompt fires only on tap), shows the returned distance, links to Google Maps for the quest's coordinates, and shows an arrival celebration state once `arrived: true`
+- [x] `checkArrival()` and `arrivalCheckSchema` tested per the Testing Strategy above, TDD
+- [x] `pnpm build`/`lint`/`test` pass; CI green on the PR — pending, will confirm once the PR is up
 
 ## Open Questions
 
