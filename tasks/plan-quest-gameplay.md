@@ -34,8 +34,8 @@ Tracker items: `.scratch/quest-gameplay/issues/01`–`03`.
 - [x] Every `SPEC-quest-gameplay.md` Success Criteria box checked
 - [x] Manual pass: far-away coordinates → `arrived: false`; in-radius coordinates → `arrived: true` + both status columns flip to `completed`, confirmed via a direct DB query; repeat call is idempotent; cross-user `404` confirmed
 - [x] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR — pending, will confirm once pushed
-- [ ] Human reviews and merges — **outstanding**
+- [x] CI green on the PR — [PR #13](https://github.com/2Steaks/dungeon-master-ai/pull/13) passed lint/test/build
+- [x] Human reviews and merges — PR #13 merged to `main` (`56552aa`)
 
 ## Risks and Mitigations
 
