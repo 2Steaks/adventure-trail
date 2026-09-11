@@ -56,7 +56,7 @@ Tracker items: `.scratch/foundation/issues/01`–`09`.
 **Known gaps carried forward (not silently dropped):**
 - No visual/screenshot browser check this session (no browser tool available) — all UI verification was via rendered HTML/class inspection.
 - No cross-user RLS test (needs real authenticated users — blocked on the `auth` module).
-- Not yet confirmed that a GitHub push auto-triggers a Vercel preview deployment (connection just authorized; will confirm on this task's own push).
+- Preview deployment URLs are behind Vercel Deployment Protection (SSO) by default — will block a logged-out phone browser from Phase 4's real-device testing. Flagged in `ROADMAP.md`, needs a decision before Phase 4, not a Foundation-module fix.
 
 ## Risks and Mitigations
 

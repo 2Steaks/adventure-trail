@@ -14,7 +14,9 @@ Blocked by: 03 (needs something worth deploying)
 
 **Verification:**
 - [x] Visited the deployed URL via curl (200 OK) — matches the local build (same source, same commit)
-- [ ] **Not yet confirmed:** that a new push actually triggers an automatic preview deployment via the GitHub connection — will verify on this task's own commit/push
+- [x] Confirmed a push to this branch auto-triggered a preview deployment, which reached `Ready` — the GitHub connection is genuinely live, not just configured
+
+**Found during verification:** preview deployment URLs redirect anonymous requests to `vercel.com/sso-api` (Vercel's Deployment Protection, on by default for this team) — confirmed the content itself is correct via `vercel curl` (which auto-generates a bypass token), but a phone browser hitting a preview URL directly, logged out of Vercel, would hit the same login wall. Production isn't protected. This will matter for Phase 4's "test on an actual phone" plan — flagged in `ROADMAP.md`, not solved here (out of scope for Foundation).
 
 **Note:** the project's very first deploy was auto-assigned to "Production" by Vercel itself (its documented behavior for a brand-new project, not something I chose) — harmless here since it's just the placeholder shell, but future manual `vercel` calls (without `--prod`) will correctly create preview deployments instead.
 
