@@ -159,8 +159,8 @@ export const createAdventureSchema = z
 - [ ] `POST /api/adventures` rejects an unauthenticated request before touching Supabase — a cookie-less request gets `307 → /login` from the Proxy (it isn't a public path); `requireUser()`'s own `401` is the fallback boundary for when Proxy coverage doesn't apply, per the "never rely on the Proxy alone" rule below
 - [ ] `POST /api/adventures` returns `400` (before any Supabase call) for an invalid body — missing theme, or `ageMax < ageMin`, or an out-of-set `durationMinutes`/`maxDistanceMeters`
 - [ ] `POST /api/adventures` with a valid body creates one `adventures` row (owned by the authenticated user, `starting_lat`/`starting_lng` = `HARD_CODED_QUEST`'s coordinates), one `quests` row (`HARD_CODED_QUEST`'s content, `adventure_id` = the new adventure), and one `game_states` row (`current_quest_id` = that quest's id); returns the created adventure
-- [ ] `GET /api/adventures` returns `401` unauthenticated; authenticated, returns only the caller's own adventures (verified against a second test account)
-- [ ] `GET /api/adventures/:id` returns `401` unauthenticated, and does not return another user's adventure (`401`/`404`) even if the id is guessed
+- [ ] `GET /api/adventures` rejects unauthenticated (`307` via the Proxy, same as `POST`'s note above); authenticated, returns only the caller's own adventures (verified against a second test account)
+- [ ] `GET /api/adventures/:id` rejects unauthenticated, and does not return another user's adventure (`401`/`404`) even if the id is guessed
 - [ ] `/` renders the Adventures list: name, theme, age range, duration, status, progress (quests complete / total), and "Resume" (→ `/adventures/[id]`) / "Create adventure" (→ `/adventures/new`) actions, sourced via a TanStack Query hook calling `GET /api/adventures`
 - [ ] `/adventures/new` renders the Create Adventure form (theme, age range, duration, max distance) via `react-hook-form` + `zodResolver(createAdventureSchema)`; on success, redirects to the new adventure's detail page
 - [ ] `/adventures/[id]` renders the adventure's hard-coded quest (landmark name, objective) and current status

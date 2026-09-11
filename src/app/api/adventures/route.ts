@@ -2,6 +2,38 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { createAdventureSchema } from "@/src/lib/schemas/adventure";
 import { HARD_CODED_QUEST } from "@/src/lib/game/hard-coded-quest";
+import {
+  serializeAdventure,
+  type AdventureRow,
+} from "@/src/lib/adventures/serialize";
+
+export async function GET() {
+  const { user, supabase } = await requireUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { data, error } = await supabase
+    .from("adventures")
+    .select("*, quests(status)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  const adventures = (
+    data as (AdventureRow & { quests: { status: string }[] })[]
+  ).map((row) => ({
+    ...serializeAdventure(row),
+    questsTotal: row.quests.length,
+    questsCompleted: row.quests.filter((q) => q.status === "completed")
+      .length,
+  }));
+
+  return NextResponse.json({ adventures });
+}
 
 export async function POST(request: Request) {
   const { user, supabase } = await requireUser();
@@ -76,5 +108,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: gameStateError.message }, { status: 400 });
   }
 
-  return NextResponse.json({ success: true, adventure });
+  return NextResponse.json({
+    success: true,
+    adventure: serializeAdventure(adventure as AdventureRow),
+  });
 }
