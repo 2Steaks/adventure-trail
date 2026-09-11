@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -9,16 +9,16 @@ Blocked by: none
 Add `validateEncounterActions(actions, currentQuestId): string[]` (`src/lib/game/encounter-actions.ts`) — the game-rule check mirroring `ai-planner`'s `invalidLocationIds()`: a `COMPLETE_OBJECTIVE` action is invalid unless its `questId` matches `currentQuestId`; an `ADD_ITEM` action is invalid if `itemId` is missing/empty. Returns one human-readable reason string per invalid action (empty array = all valid), used both to decide whether to retry the LLM call (task 04) and to feed the specific correction back into the retry prompt.
 
 **Acceptance criteria:**
-- [ ] `encounterOutputSchema` accepts a well-formed object with non-empty `choices`/`actions`, and separately with both empty
-- [ ] `encounterOutputSchema` rejects a missing `message`, a choice missing `id`/`label`, and an action with an unrecognized `type`
-- [ ] `validateEncounterActions()` returns `[]` when every `COMPLETE_OBJECTIVE` targets `currentQuestId` and every `ADD_ITEM` has an `itemId`
-- [ ] `validateEncounterActions()` returns a reason naming the offending action when a `COMPLETE_OBJECTIVE` targets a different quest id
-- [ ] `validateEncounterActions()` returns a reason when an `ADD_ITEM` is missing `itemId`
-- [ ] Multiple invalid actions in one call each produce their own reason (not just the first)
+- [x] `encounterOutputSchema` accepts a well-formed object with non-empty `choices`/`actions`, and separately with both empty
+- [x] `encounterOutputSchema` rejects a missing `message`, a choice missing `id`/`label`, and an action with an unrecognized `type`
+- [x] `validateEncounterActions()` returns `[]` when every `COMPLETE_OBJECTIVE` targets `currentQuestId` and every `ADD_ITEM` has an `itemId`
+- [x] `validateEncounterActions()` returns a reason naming the offending action when a `COMPLETE_OBJECTIVE` targets a different quest id
+- [x] `validateEncounterActions()` returns a reason when an `ADD_ITEM` is missing `itemId`
+- [x] Multiple invalid actions in one call each produce their own reason (not just the first)
 
 **Verification:**
-- [ ] `pnpm test` passes (new `encounter.test.ts` + `encounter-actions.test.ts`)
-- [ ] `pnpm build`/`lint` pass
+- [x] `pnpm test` passes (new `encounter.test.ts` + `encounter-actions.test.ts`, 68/68 total)
+- [x] `pnpm build`/`lint` pass (0 errors; one pre-existing unrelated warning in `src/lib/supabase/client.ts`)
 
 **Dependencies:** None
 

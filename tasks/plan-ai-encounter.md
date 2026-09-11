@@ -21,7 +21,7 @@ The second module with real per-call Anthropic cost, so the same sequencing prin
 Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 
 ### Phase: Free, pure primitives (zero API cost)
-- [ ] [01 - encounterOutputSchema + validateEncounterActions() (TDD)](.scratch/ai-encounter/issues/01-encounter-schema-and-validation.md)
+- [x] [01 - encounterOutputSchema + validateEncounterActions() (TDD)](.scratch/ai-encounter/issues/01-encounter-schema-and-validation.md)
 - [ ] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md)
 - [ ] [03 - POST /api/adventures/:id/choice (flavor-only message, no LLM)](.scratch/ai-encounter/issues/03-choice-endpoint.md)
 
