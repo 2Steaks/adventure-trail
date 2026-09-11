@@ -163,4 +163,4 @@ export type AdventurePlan = z.infer<typeof adventurePlanSchema>;
 
 ## Open Questions
 
-None blocking. Real cost, not just risk, attached to this module now: every manual verification pass during implementation is a real, billed Anthropic API call — testing will be deliberate (a handful of live create-adventure passes to prove the retry path and the happy path), not exploratory looping.
+None blocking implementation. **Live verification is deferred to a later stage, by explicit request** — the one attempt made hit a real Anthropic account usage limit (`AI_APICallError`, resets 2026-10-01), a billing/account block rather than a code bug. `generateAdventurePlan()` and the full create-adventure flow are implemented and pass typecheck/lint/unit tests/code review, but `generateAdventurePlan()` has never actually been proven against a real model response, and neither has the retry path. This is a tracked, explicit gap: re-run the live verification described in this spec's Testing Strategy before treating this module as done, not something to quietly forget once the code merges.

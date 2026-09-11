@@ -1,4 +1,4 @@
-Status: blocked
+Status: resolved
 Type: task
 Blocked by: 01
 
@@ -8,17 +8,17 @@ Blocked by: 01
 
 **Corrected from the spec while implementing:** `generateObject` is deprecated in the installed `ai` SDK version (7.0.97) — confirmed via `node_modules`' own type declarations (`@deprecated Use generateText with an output setting instead`), not assumed from training data. Used `generateText` with `output: Output.object({ schema: adventurePlanSchema })` instead — same contract, current API. `SPEC-ai-planner.md`'s Code Style example updated to match.
 
-**Blocked on manual verification:** the code is written and passes `pnpm build`/`lint`/`test` (typecheck confirms the SDK call shape is correct), but the one deliberate live call to actually prove it end-to-end hit `AI_APICallError: You have reached your specified API usage limits. You will regain access on 2026-10-01 at 00:00 UTC.` The API key itself is valid — auth succeeded, the request reached Anthropic — this is an account-level usage/billing limit, not a code bug, and not something fixable from here. Task 05 depends on this task's live verification actually succeeding, so it's paused too until this clears (raise the usage limit or wait for the reset, on your end at console.anthropic.com).
+**Live verification deliberately deferred, by request:** the one deliberate live call meant to prove this end-to-end hit `AI_APICallError: You have reached your specified API usage limits. You will regain access on 2026-10-01 at 00:00 UTC.` The API key itself is valid — auth succeeded, the request reached Anthropic — this is an account-level usage/billing limit, not a code bug. Rather than blocking the rest of the module on it, live verification of this task (and task 05's end-to-end flow) is pushed to a later stage — implementation proceeds on the strength of typecheck/lint/unit tests + code review alone. **This is a real, explicit gap, not a silently-skipped one:** `generateAdventurePlan()` has never actually been proven against a real model response. Re-verify live before treating this module as done.
 
 **Acceptance criteria:**
 - [x] `generateAdventurePlan()` implemented, delegates to `generateText`/`Output.object()`, wired to `invalidLocationIds()` for the retry decision
-- [ ] `generateAdventurePlan()` returns a valid plan on a normal successful call — **blocked, see above**
-- [ ] The retry path is exercised at least once, live — **blocked, see above**
+- [ ] `generateAdventurePlan()` returns a valid plan on a normal successful call — **deferred, not yet verified live**
+- [ ] The retry path is exercised at least once, live — **deferred, not yet verified live**
 - [x] `AdventurePlanError` is thrown (not silently swallowed) if both attempts produce invalid `locationId`s — implemented, not yet exercised live
 
 **Verification:**
 - [x] `pnpm build`/`lint`/`test` pass
-- [ ] Manual: **a small, deliberate number of live calls** — **blocked by the Anthropic account usage limit above**, not yet done
+- [ ] Manual: **a small, deliberate number of live calls** — **deferred to a later stage**, not yet done
 
 **Dependencies:** 01 (uses `invalidLocationIds()` and `adventurePlanSchema`)
 
