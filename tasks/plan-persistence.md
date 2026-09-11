@@ -35,8 +35,8 @@ Tracker items: `.scratch/persistence/issues/01`–`04`.
 - [x] Every `SPEC-persistence.md` Success Criteria box checked
 - [x] Manual end-to-end pass: create an adventure → appears on `/` → "Resume" → detail page shows the hard-coded quest → confirmed absent from a second test user's list and returns `404` via a guessed id
 - [x] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR — pending, will confirm once pushed
-- [ ] Human reviews and merges — **outstanding**
+- [x] CI green on the PR — [PR #9](https://github.com/2Steaks/dungeon-master-ai/pull/9) passed lint/test/build
+- [x] Human reviews and merges — PR #9 merged to `main` (`429fac2`)
 
 ## Risks and Mitigations
 
