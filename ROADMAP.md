@@ -30,6 +30,7 @@ This is the whole-project phased plan, derived from `CAPABILITY_MAP.md`'s module
 - **Quest Gameplay moved ahead of AI Planner** (see Phase 4/5 below) — proving Haversine/arrival/Google-Maps-deep-link against Phase 3's hard-coded adventure derisks GPS/permissions issues independently of LLM output-validation issues, rather than debugging both at once.
 - Auth ships bare-minimum: register/login/logout/persistent session. No email verification, no password reset — addable later as a config change, not a rearchitecture.
 - shadcn/ui base: `new-york` style, `neutral` base color, CSS variables — inert choice since Foundation immediately restyles for pixel-art.
+- **No browser-side Supabase client anywhere in the app.** The frontend never calls Supabase directly; it calls Next.js Route Handlers (`app/api/**`), which use the server client (`src/lib/supabase/client.ts`, cookie-based via `@supabase/ssr`). This applies to every module, not just Foundation: `auth`'s register/login/logout submit to API routes; `persistence`'s TanStack Query hooks fetch from API routes, not from a Supabase browser SDK. RLS remains in place as defense-in-depth, but the primary access-control boundary is "did this request reach an authenticated Route Handler," not "does the browser hold a scoped Supabase session."
 
 ## Phases
 

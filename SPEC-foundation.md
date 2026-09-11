@@ -64,8 +64,7 @@ src/
         Wizard.tsx    # state-driven placeholder (no art yet)
 
   lib/
-    supabase/          # already scaffolded: client.ts (server), proxy.ts (middleware helper)
-      browser-client.ts  # new: browser-side Supabase client for TanStack Query hooks
+    supabase/          # already scaffolded: client.ts (server), proxy.ts (middleware helper) — no browser client; the FE never talks to Supabase directly
     query/
       provider.tsx    # TanStack QueryClientProvider wrapper
     schemas/            # empty until a module needs a Zod schema — not created here
@@ -113,14 +112,14 @@ Tailwind v4 tokens go in `globals.css` under `@theme`, not a `tailwind.config.js
 
 - Framework: Vitest + Testing Library, `jsdom` environment, config in `vitest.config.ts` (excluded from `tsconfig`'s Next build).
 - Location: colocated `*.test.ts(x)` next to source, or `src/**/__tests__/`.
-- This module's own test bar (later modules add their own): one component test asserting `Wizard` renders each `WizardState` value with the expected `aria-label`, and one smoke test that the Supabase browser/server client factories throw a clear error when env vars are missing (already partly true in `client.ts`).
+- This module's own test bar (later modules add their own): one component test asserting `Wizard` renders each `WizardState` value with the expected `aria-label`, and one smoke test that the Supabase server client factory throws a clear error when env vars are missing (already partly true in `client.ts`).
 - No coverage threshold enforced yet — introduce one later via `constraint-driven-development` if desired, once real logic (Haversine, Zod schemas, action validation) exists to measure.
 
 ## Boundaries
 
-- **Always:** mobile-first Tailwind classes (base styles target ~375px viewport); enable RLS on every new table in the same migration that creates it; run `pnpm lint` and `pnpm test` before treating a task as done; keep `src/` layout consistent with `CAPABILITY_MAP.md` module ownership; ship this module's implementation as its own `feat/foundation` PR (see `ROADMAP.md` Delivery workflow), not folded into other modules' work; write a failing test before implementation code for anything with real logic (the `Wizard` state rendering, the Supabase client factories' error-on-missing-env behavior) — pure scaffolding steps (shadcn init, env file, dependency install) don't need an invented test.
+- **Always:** mobile-first Tailwind classes (base styles target ~375px viewport); enable RLS on every new table in the same migration that creates it; run `pnpm lint` and `pnpm test` before treating a task as done; keep `src/` layout consistent with `CAPABILITY_MAP.md` module ownership; ship this module's implementation as its own `feat/foundation` PR (see `ROADMAP.md` Delivery workflow), not folded into other modules' work; write a failing test before implementation code for anything with real logic (the `Wizard` state rendering, the Supabase client factory's error-on-missing-env behavior) — pure scaffolding steps (shadcn init, env file, dependency install) don't need an invented test; **route all Supabase access through Next.js Route Handlers using the server client (`src/lib/supabase/client.ts`)** — TanStack Query hooks in the frontend call `app/api/**` routes, never Supabase directly.
 - **Ask first:** any dependency beyond what's listed in Tech Stack; shadcn theme/style choice beyond a minimal pixel-art restyle; any change to the `supabase/migrations/<timestamp>_init.sql` schema after it has been applied to a shared/remote Supabase project (migrations are append-only across modules).
-- **Never:** use Prisma; use `localStorage` or Zustand; generate wizard artwork dynamically; commit `.env`; run `supabase db reset` against a linked remote project without explicit confirmation; edit `node_modules/` (including the auto-regenerated AGENTS.md block, which is expected to reappear — see `AGENTS.md`).
+- **Never:** use Prisma; use `localStorage` or Zustand; generate wizard artwork dynamically; commit `.env`; run `supabase db reset` against a linked remote project without explicit confirmation; edit `node_modules/` (including the auto-regenerated AGENTS.md block, which is expected to reappear — see `AGENTS.md`); add a browser-side Supabase client or call Supabase directly from client components — the frontend only ever talks to `app/api/**` Route Handlers.
 
 ## Success Criteria
 
@@ -129,7 +128,7 @@ Tailwind v4 tokens go in `globals.css` under `@theme`, not a `tailwind.config.js
 - [ ] `pnpm test` runs Vitest and passes, including the `Wizard` state test
 - [ ] shadcn/ui initialized (`components.json` present); at least one primitive (e.g. `Button`) restyled with the pixel-art treatment (hard border, no radius, chunky padding)
 - [ ] TanStack Query's `QueryClientProvider` wraps the app; React Query Devtools available in `pnpm dev`
-- [ ] `src/lib/supabase/browser-client.ts` added alongside the existing server client; both construct successfully given `.env` values
+- [ ] No browser-side Supabase client exists; the server client (`src/lib/supabase/client.ts`) constructs successfully given `.env` values and is the only Supabase entry point — later modules' TanStack Query hooks call `app/api/**` Route Handlers, not Supabase directly
 - [ ] `supabase/migrations/<timestamp>_init.sql` creates `adventures`, `quests`, `game_states`, `messages` with RLS policies scoping access to the owning `auth.uid()` (directly on `adventures.user_id`, and via `adventure_id` join for child tables); applies cleanly with `supabase db push` against a linked project
 - [ ] `Wizard` component exists, accepts the six-value `state` prop, renders a bordered placeholder (no art asset) labelled with the state
 - [ ] Supabase CLI installed; you have run `supabase login`/`supabase link` (manual — I flag this as the remaining blocker if it hasn't happened)
@@ -139,7 +138,8 @@ Tailwind v4 tokens go in `globals.css` under `@theme`, not a `tailwind.config.js
 
 ## Open Questions
 
-None blocking. Resolved during the grilling session on `ROADMAP.md`:
+None blocking. Resolved during the grilling session on `ROADMAP.md`, plus one architecture decision made afterward:
+- **No browser-side Supabase client, ever.** The frontend calls Next.js Route Handlers (`app/api/**`); those handlers use the server client (`src/lib/supabase/client.ts`). This applies to every later module too (`auth`'s register/login, `persistence`'s CRUD hooks) — noted in `ROADMAP.md`'s decision log for downstream modules.
 - Real wizard artwork stays deferred — this module only wires the state-driven component shell.
 - LLM provider/model choice is decided at the roadmap level (`@ai-sdk/anthropic`, split models) but exact model IDs are still deferred to the `ai-planner`/`ai-encounter` module specs.
 - The previously-empty `src/features/`, `src/server/`, `src/pages/`, `src/app/adventure/[id]/` directories were confirmed as leftover noise and deleted — not a structural decision this module needs to honor.
