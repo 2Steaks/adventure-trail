@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: 01, 02
 
@@ -9,17 +9,17 @@ Blocked by: 01, 02
 `useCheckArrival(adventureId)` (`src/lib/game/hooks.ts`) wraps `getCurrentPosition()` (task 01) + a `POST` to the route via `fetchJson()`. `src/app/adventures/[id]/page.tsx` is extended (not replaced) with: a "Check My Distance" button (geolocation prompt fires only on tap), a distance readout after a successful check, a Google Maps deep-link (`https://www.google.com/maps/dir/?api=1&destination=<lat>,<lng>`) to the quest's coordinates, and an arrival celebration state once `arrived: true`.
 
 **Acceptance criteria:**
-- [ ] `POST /api/adventures/:id/arrival` rejects unauthenticated requests
-- [ ] Returns `404` for another user's adventure id
-- [ ] Coordinates far from the quest return `{ arrived: false }` with a real `distanceMeters`
-- [ ] Coordinates within `quest.radiusMeters` return `{ arrived: true }` and persist both status updates
-- [ ] Calling again after completion doesn't error or re-trigger the write
-- [ ] `/adventures/[id]` renders the button, distance readout, Maps link, and arrival state as described above
+- [x] `POST /api/adventures/:id/arrival` rejects unauthenticated requests (`307` via the Proxy, same nuance as every `/api/adventures/**` route)
+- [x] Returns `404` for another user's adventure id
+- [x] Coordinates far from the quest return `{ arrived: false }` with a real `distanceMeters`
+- [x] Coordinates within `quest.radiusMeters` return `{ arrived: true }` and persist both status updates
+- [x] Calling again after completion doesn't error or re-trigger the write
+- [x] `/adventures/[id]` renders the button, distance readout, Maps link, and arrival state as described above
 
 **Verification:**
-- [ ] `pnpm build`/`lint`/`test` pass
-- [ ] Manual: as a real logged-in user with an adventure from `persistence`, call the route with coordinates far from Trafalgar Square (expect `arrived: false`) and then with coordinates inside the 40m radius (expect `arrived: true`, confirm via a direct DB query that both `quests.status` and `adventures.status` flipped to `completed`); call again with the same in-radius coordinates and confirm no error
-- [ ] Confirm an unauthenticated `curl` to the route is rejected, and a second test user's `curl` against the first user's adventure id gets `404`
+- [x] `pnpm build`/`lint`/`test` pass (49/49)
+- [x] Manual: registered a real test account, created an adventure; called the route with coordinates far from Trafalgar Square (`arrived: false`, real `distanceMeters`) then with the exact landmark coordinates (`arrived: true`); confirmed via `supabase db query --linked` that both `quests.status` and `adventures.status` flipped to `completed`; called again with the same coordinates and got the same `200` response, no error, no duplicate write
+- [x] Confirmed an unauthenticated `curl` gets `307` (Proxy), and a second test user's `curl` against the first user's adventure id gets `404`. Test adventure deleted afterward.
 
 **Dependencies:** 01, 02
 
