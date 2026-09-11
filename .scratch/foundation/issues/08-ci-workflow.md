@@ -1,4 +1,4 @@
-Status: resolved (pending live confirmation once pushed)
+Status: resolved
 Type: task
 Blocked by: 01, 02, 03, 04, 05, 06
 
@@ -12,7 +12,7 @@ Blocked by: 01, 02, 03, 04, 05, 06
 - [x] Fails the check if any step fails (no `continue-on-error`, default `pnpm` non-zero exit propagates)
 
 **Verification:**
-- [ ] Push this branch / open its PR and confirm the Actions run appears and passes — **not yet verified live**, no way to check from this sandbox before pushing; will confirm once the PR is open
+- [x] Push this branch / open its PR and confirm the Actions run appears and passes — confirmed live on PR #4 (run 34594992972), all steps green in 37s
 
 **Note:** `pnpm build`'s step passes `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` from GitHub secrets — not needed yet (no page calls Supabase during build), but forward-compatible for when `auth`/`persistence` add server components that do. If those secrets aren't configured in the repo yet, they just resolve to empty strings — harmless until a page actually needs them.
 
