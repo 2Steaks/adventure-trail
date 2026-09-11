@@ -2,6 +2,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCurrentPosition } from "@/src/lib/geo/geolocation";
 import { fetchJson } from "@/src/lib/http/fetch-json";
 import type { ArrivalResult } from "@/src/lib/game/arrival";
+import type { EncounterOutput } from "@/src/lib/schemas/encounter";
+
+export function useEncounter(adventureId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      fetchJson<EncounterOutput>(`/api/adventures/${adventureId}/encounter`, {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adventures", adventureId] });
+    },
+  });
+}
 
 export function useSendChoice(adventureId: string) {
   return useMutation({

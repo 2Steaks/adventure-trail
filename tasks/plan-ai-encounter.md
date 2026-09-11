@@ -38,15 +38,15 @@ Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 - [x] Live-call count for this checkpoint stayed small and deliberate (one attempt, no retry-looping to work around the limit)
 
 ### Phase: Vertical slice
-- [ ] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md)
+- [x] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md) — implemented; live confirmation deferred, see ticket
 
 ### Checkpoint C — AI Encounter complete
-- [ ] Every `SPEC-ai-encounter.md` Success Criteria box checked
-- [ ] Failure paths (unauthenticated, wrong owner, no current quest, invalid actions after retry) confirmed live without needing a live LLM call to succeed
-- [ ] Manual pass: one real end-to-end encounter (arrive → talk to Wizard → AI message + choices → objective completed → next quest, or adventure completed on the last quest) — **deferred if task 04's live verification is deferred, same dependency**
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [ ] Every `SPEC-ai-encounter.md` Success Criteria box checked — **not yet: the live-dependent boxes (wrong-owner `404`, no-current-quest `409` live, full encounter flow) are deferred, see Checkpoint B**
+- [x] Failure paths not needing a live LLM call (unauthenticated on `arrival`/`choice`/`encounter`) confirmed live
+- [ ] Manual pass: one real end-to-end encounter (arrive → talk to Wizard → AI message + choices → objective completed → next quest, or adventure completed on the last quest) — **deferred, same dependency as Checkpoint B**
+- [x] `pnpm build`/`lint`/`test` all pass (73/73 tests; production build compiles)
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 

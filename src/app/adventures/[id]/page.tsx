@@ -2,8 +2,14 @@
 
 import { use } from "react";
 import { useAdventure } from "@/src/lib/adventures/hooks";
-import { useCheckArrival } from "@/src/lib/game/hooks";
+import {
+  useCheckArrival,
+  useEncounter,
+  useSendChoice,
+} from "@/src/lib/game/hooks";
 import { Button } from "@/src/components/ui/button";
+import { Wizard, type WizardState } from "@/src/components/game/wizard/Wizard";
+import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
 
 export default function AdventureDetailPage({
   params,
@@ -13,6 +19,8 @@ export default function AdventureDetailPage({
   const { id } = use(params);
   const { data, isLoading, error } = useAdventure(id);
   const checkArrival = useCheckArrival(id);
+  const encounter = useEncounter(id);
+  const sendChoice = useSendChoice(id);
 
   if (isLoading) {
     return (
@@ -32,10 +40,29 @@ export default function AdventureDetailPage({
     );
   }
 
-  const quest = data.quests[0];
-  const arrived = checkArrival.data?.arrived ?? quest?.status === "completed";
-  const mapsUrl = quest
-    ? `https://www.google.com/maps/dir/?api=1&destination=${quest.latitude},${quest.longitude}`
+  const currentQuest = data.quests.find(
+    (quest) => quest.id === data.gameState.currentQuestId,
+  );
+  const arrived =
+    checkArrival.data?.arrived ?? currentQuest?.status === "completed";
+
+  let wizardState: WizardState = "idle";
+  if (encounter.isPending) {
+    wizardState = "thinking";
+  } else if (encounter.isError) {
+    wizardState = "unexpected-event";
+  } else if (encounter.data) {
+    wizardState = encounter.data.actions.some(
+      (action) => action.type === "COMPLETE_OBJECTIVE",
+    )
+      ? "quest-completed"
+      : "waiting";
+  } else if (arrived) {
+    wizardState = "quest-available";
+  }
+
+  const mapsUrl = currentQuest
+    ? `https://www.google.com/maps/dir/?api=1&destination=${currentQuest.latitude},${currentQuest.longitude}`
     : undefined;
 
   return (
@@ -48,19 +75,25 @@ export default function AdventureDetailPage({
           {data.adventure.status}
         </p>
 
-        {quest && (
+        <div className="mt-4 flex justify-center">
+          <Wizard state={wizardState} />
+        </div>
+
+        {!currentQuest ? (
+          <p className="mt-4 text-center text-lg font-black uppercase text-primary">
+            Adventure Complete!
+          </p>
+        ) : (
           <div className="mt-4 border-2 border-foreground bg-background p-4">
-            <p className="text-sm font-bold uppercase">{quest.landmarkName}</p>
-            <p className="mt-1 text-sm">{quest.objective}</p>
+            <p className="text-sm font-bold uppercase">
+              {currentQuest.landmarkName}
+            </p>
+            <p className="mt-1 text-sm">{currentQuest.objective}</p>
             <p className="mt-2 text-xs uppercase text-muted-foreground">
-              {quest.status}
+              {currentQuest.status}
             </p>
 
-            {arrived ? (
-              <p className="mt-4 text-center text-lg font-black uppercase text-primary">
-                You&apos;ve Arrived!
-              </p>
-            ) : (
+            {!arrived ? (
               <>
                 {mapsUrl && (
                   <a href={mapsUrl} target="_blank" rel="noreferrer">
@@ -90,6 +123,37 @@ export default function AdventureDetailPage({
                   <p className="mt-2 text-sm text-destructive">
                     {checkArrival.error.message}
                   </p>
+                )}
+              </>
+            ) : (
+              <>
+                {!encounter.data && (
+                  <Button
+                    className="mt-4 w-full"
+                    disabled={encounter.isPending}
+                    onClick={() => encounter.mutate()}
+                  >
+                    {encounter.isPending
+                      ? "The wizard is thinking..."
+                      : "Talk to the Wizard"}
+                  </Button>
+                )}
+
+                {encounter.error && (
+                  <p className="mt-2 text-sm text-destructive">
+                    {encounter.error.message}
+                  </p>
+                )}
+
+                {encounter.data && (
+                  <EncounterPanel
+                    output={encounter.data}
+                    disabled={sendChoice.isPending}
+                    onChoose={(label) => {
+                      sendChoice.mutate(label);
+                      encounter.reset();
+                    }}
+                  />
                 )}
               </>
             )}
