@@ -23,10 +23,11 @@ This is the `auth` module's first task, not a separate hotfix: delete the root `
 
 ## Tech Stack
 
-No new dependencies. Reuses what Foundation already installed:
+Reuses what Foundation already installed, plus two new form-handling dependencies added mid-module at the user's request:
 
 - Supabase Auth via the existing server client (`src/lib/supabase/client.ts`) — `signUp`, `signInWithPassword`, `signOut`
-- Zod for request validation (already installed, unused until now)
+- Zod for request *and* form validation (already installed, unused until now)
+- **`react-hook-form` + `@hookform/resolvers`** (new): register/login forms use `useForm({ resolver: zodResolver(authCredentialsSchema) })` instead of manual `useState` + hand-rolled validation. Same Zod schema drives both the client-side field errors and the server-side request validation — one source of truth, not two. This is the pattern for every form this project builds going forward (e.g. `persistence`'s create-adventure form), not a one-off for auth.
 - TanStack Query (`useMutation`) for the register/login/logout calls from the frontend
 - No browser-side Supabase client — per `ROADMAP.md`'s architecture decision, the frontend calls Next.js Route Handlers, which use the server client
 

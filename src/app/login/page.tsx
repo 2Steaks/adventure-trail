@@ -3,18 +3,18 @@
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRegister } from "@/src/lib/auth/hooks";
+import { useLogin } from "@/src/lib/auth/hooks";
 import {
   authCredentialsSchema,
   type AuthCredentials,
 } from "@/src/lib/schemas/auth";
 import { Button } from "@/src/components/ui/button";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const register = useRegister();
+  const login = useLogin();
   const {
-    register: registerField,
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm<AuthCredentials>({
@@ -22,7 +22,7 @@ export default function RegisterPage() {
   });
 
   const onSubmit = (data: AuthCredentials) => {
-    register.mutate(data, {
+    login.mutate(data, {
       onSuccess: () => router.push("/"),
     });
   };
@@ -34,7 +34,7 @@ export default function RegisterPage() {
         className="w-full max-w-sm border-4 border-foreground bg-card p-6 text-left"
       >
         <h1 className="text-2xl font-black uppercase tracking-wide">
-          Register
+          Log In
         </h1>
 
         <label
@@ -46,7 +46,7 @@ export default function RegisterPage() {
         <input
           id="email"
           type="email"
-          {...registerField("email")}
+          {...register("email")}
           className="mt-1 w-full border-2 border-foreground bg-background p-2"
         />
         {errors.email && (
@@ -64,7 +64,7 @@ export default function RegisterPage() {
         <input
           id="password"
           type="password"
-          {...registerField("password")}
+          {...register("password")}
           className="mt-1 w-full border-2 border-foreground bg-background p-2"
         />
         {errors.password && (
@@ -73,19 +73,22 @@ export default function RegisterPage() {
           </p>
         )}
 
-        {register.error && (
+        {login.error && (
           <p className="mt-4 text-sm text-destructive">
-            {register.error.message}
+            {login.error.message}
           </p>
         )}
 
-        <Button
-          type="submit"
-          className="mt-6 w-full"
-          disabled={register.isPending}
-        >
-          {register.isPending ? "Creating account..." : "Register"}
+        <Button type="submit" className="mt-6 w-full" disabled={login.isPending}>
+          {login.isPending ? "Logging in..." : "Log In"}
         </Button>
+
+        <a
+          href="/register"
+          className="mt-4 block text-center text-sm underline"
+        >
+          Need an account? Register
+        </a>
       </form>
     </main>
   );
