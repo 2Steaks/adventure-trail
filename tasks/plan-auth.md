@@ -19,14 +19,14 @@ Unlike Foundation, this module has a real, testable vertical slice: a user shoul
 Tracker items: `.scratch/auth/issues/01`–`06`.
 
 ### Phase: Foundational fix + primitives
-- [ ] [01 - Fix the inert Proxy (move + matcher + regression test)](.scratch/auth/issues/01-fix-proxy.md)
-- [ ] [02 - Auth Zod schema (TDD)](.scratch/auth/issues/02-auth-schema.md)
-- [ ] [03 - requireUser() helper (TDD)](.scratch/auth/issues/03-require-user.md)
+- [x] [01 - Fix the inert Proxy (move + matcher + regression test)](.scratch/auth/issues/01-fix-proxy.md)
+- [x] [02 - Auth Zod schema (TDD)](.scratch/auth/issues/02-auth-schema.md)
+- [x] [03 - requireUser() helper (TDD)](.scratch/auth/issues/03-require-user.md)
 
 ### Checkpoint A — after 01–03
-- [ ] `pnpm test`/`build`/`lint` all pass
-- [ ] Proxy regression test passes; manually confirmed unauthenticated `/` → `307` → `/login`, and `/login`/`/register` stay `200`
-- [ ] Human reviews the Proxy fix specifically (it changes routing for the whole app) before the vertical slices build on top of it
+- [x] `pnpm test`/`build`/`lint` all pass (22/22 tests)
+- [x] Proxy regression test passes; manually confirmed unauthenticated `/` → `307` → `/login`, and `/login`/`/register` return `404` (not built yet, but critically not redirected)
+- [ ] Human reviews the Proxy fix specifically (it changes routing for the whole app) before the vertical slices build on top of it — **outstanding**
 
 ### Phase: Vertical slices
 - [ ] [04 - Register (route handler + page + hook)](.scratch/auth/issues/04-register.md)
