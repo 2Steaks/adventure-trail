@@ -1,9 +1,15 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import { useAdventure } from "@/src/lib/adventures/hooks";
-import { useCheckArrival } from "@/src/lib/game/hooks";
+import {
+  useCheckArrival,
+  useEncounter,
+  useSendChoice,
+} from "@/src/lib/game/hooks";
 import { Button } from "@/src/components/ui/button";
+import { Wizard, type WizardState } from "@/src/components/game/wizard/Wizard";
+import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
 
 export default function AdventureDetailPage({
   params,
@@ -13,6 +19,19 @@ export default function AdventureDetailPage({
   const { id } = use(params);
   const { data, isLoading, error } = useAdventure(id);
   const checkArrival = useCheckArrival(id);
+  const encounter = useEncounter(id);
+  const sendChoice = useSendChoice(id);
+
+  const currentQuestId = data?.gameState.currentQuestId;
+
+  // The current quest advances server-side (via useEncounter's query
+  // invalidation) as soon as an encounter completes an objective — reset
+  // the *previous* quest's distance-check result so "arrived" doesn't
+  // stay stuck true for the next, different landmark.
+  useEffect(() => {
+    checkArrival.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestId]);
 
   if (isLoading) {
     return (
@@ -32,11 +51,34 @@ export default function AdventureDetailPage({
     );
   }
 
-  const quest = data.quests[0];
-  const arrived = checkArrival.data?.arrived ?? quest?.status === "completed";
-  const mapsUrl = quest
-    ? `https://www.google.com/maps/dir/?api=1&destination=${quest.latitude},${quest.longitude}`
+  const currentQuest = data.quests.find((quest) => quest.id === currentQuestId);
+  const arrived =
+    checkArrival.data?.arrived ?? currentQuest?.status === "completed";
+
+  let wizardState: WizardState = "idle";
+  if (encounter.isPending) {
+    wizardState = "thinking";
+  } else if (encounter.isError) {
+    wizardState = "unexpected-event";
+  } else if (encounter.data) {
+    wizardState = encounter.data.actions.some(
+      (action) => action.type === "COMPLETE_OBJECTIVE",
+    )
+      ? "quest-completed"
+      : "waiting";
+  } else if (arrived) {
+    wizardState = "quest-available";
+  }
+
+  const mapsUrl = currentQuest
+    ? `https://www.google.com/maps/dir/?api=1&destination=${currentQuest.latitude},${currentQuest.longitude}`
     : undefined;
+
+  // An unread encounter result (including the adventure's final "The End"
+  // message) stays visible even after the server-side quest position has
+  // already advanced past it — only dismissing it (a choice tap or
+  // Continue) can reveal "Adventure Complete!" or the next quest's card.
+  const adventureFinished = !currentQuest && !encounter.data;
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
@@ -48,52 +90,99 @@ export default function AdventureDetailPage({
           {data.adventure.status}
         </p>
 
-        {quest && (
-          <div className="mt-4 border-2 border-foreground bg-background p-4">
-            <p className="text-sm font-bold uppercase">{quest.landmarkName}</p>
-            <p className="mt-1 text-sm">{quest.objective}</p>
-            <p className="mt-2 text-xs uppercase text-muted-foreground">
-              {quest.status}
-            </p>
+        <div className="mt-4 flex justify-center">
+          <Wizard state={wizardState} />
+        </div>
 
-            {arrived ? (
-              <p className="mt-4 text-center text-lg font-black uppercase text-primary">
-                You&apos;ve Arrived!
-              </p>
-            ) : (
-              <>
-                {mapsUrl && (
-                  <a href={mapsUrl} target="_blank" rel="noreferrer">
-                    <Button variant="outline" className="mt-4 w-full">
-                      Open in Google Maps
+        {adventureFinished ? (
+          <p className="mt-4 text-center text-lg font-black uppercase text-primary">
+            Adventure Complete!
+          </p>
+        ) : (
+          <>
+            {currentQuest && (
+              <div className="mt-4 border-2 border-foreground bg-background p-4">
+                <p className="text-sm font-bold uppercase">
+                  {currentQuest.landmarkName}
+                </p>
+                <p className="mt-1 text-sm">{currentQuest.objective}</p>
+                <p className="mt-2 text-xs uppercase text-muted-foreground">
+                  {currentQuest.status}
+                </p>
+
+                {!arrived ? (
+                  <>
+                    {mapsUrl && (
+                      <a href={mapsUrl} target="_blank" rel="noreferrer">
+                        <Button variant="outline" className="mt-4 w-full">
+                          Open in Google Maps
+                        </Button>
+                      </a>
+                    )}
+
+                    <Button
+                      className="mt-3 w-full"
+                      disabled={checkArrival.isPending}
+                      onClick={() => checkArrival.mutate()}
+                    >
+                      {checkArrival.isPending
+                        ? "Checking..."
+                        : "Check My Distance"}
                     </Button>
-                  </a>
+
+                    {checkArrival.data && !checkArrival.data.arrived && (
+                      <p className="mt-2 text-center text-sm">
+                        {Math.round(checkArrival.data.distanceMeters)}m away
+                      </p>
+                    )}
+
+                    {checkArrival.error && (
+                      <p className="mt-2 text-sm text-destructive">
+                        {checkArrival.error.message}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  !encounter.data && (
+                    <Button
+                      className="mt-4 w-full"
+                      disabled={encounter.isPending}
+                      onClick={() => encounter.mutate()}
+                    >
+                      {encounter.isPending
+                        ? "The wizard is thinking..."
+                        : "Talk to the Wizard"}
+                    </Button>
+                  )
                 )}
 
-                <Button
-                  className="mt-3 w-full"
-                  disabled={checkArrival.isPending}
-                  onClick={() => checkArrival.mutate()}
-                >
-                  {checkArrival.isPending
-                    ? "Checking..."
-                    : "Check My Distance"}
-                </Button>
-
-                {checkArrival.data && !checkArrival.data.arrived && (
-                  <p className="mt-2 text-center text-sm">
-                    {Math.round(checkArrival.data.distanceMeters)}m away
-                  </p>
-                )}
-
-                {checkArrival.error && (
+                {encounter.error && (
                   <p className="mt-2 text-sm text-destructive">
-                    {checkArrival.error.message}
+                    {encounter.error.message}
                   </p>
                 )}
-              </>
+              </div>
             )}
-          </div>
+
+            {encounter.data && (
+              <EncounterPanel
+                output={encounter.data}
+                disabled={sendChoice.isPending}
+                onChoose={(label) =>
+                  sendChoice.mutate(label, {
+                    onSuccess: () => encounter.reset(),
+                  })
+                }
+                onContinue={() => encounter.reset()}
+              />
+            )}
+
+            {sendChoice.error && (
+              <p className="mt-2 text-sm text-destructive">
+                {sendChoice.error.message}
+              </p>
+            )}
+          </>
         )}
       </div>
     </main>

@@ -3,6 +3,7 @@ import type { CreateAdventure } from "@/src/lib/schemas/adventure";
 import type {
   AdventureSummary,
   SerializedAdventure,
+  SerializedGameState,
   SerializedQuest,
 } from "@/src/lib/adventures/serialize";
 import { fetchJson } from "@/src/lib/http/fetch-json";
@@ -22,6 +23,7 @@ export function useAdventure(id: string) {
       fetchJson<{
         adventure: SerializedAdventure;
         quests: SerializedQuest[];
+        gameState: SerializedGameState;
       }>(`/api/adventures/${id}`),
   });
 }

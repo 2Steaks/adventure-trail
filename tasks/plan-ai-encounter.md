@@ -21,32 +21,32 @@ The second module with real per-call Anthropic cost, so the same sequencing prin
 Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 
 ### Phase: Free, pure primitives (zero API cost)
-- [ ] [01 - encounterOutputSchema + validateEncounterActions() (TDD)](.scratch/ai-encounter/issues/01-encounter-schema-and-validation.md)
-- [ ] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md)
-- [ ] [03 - POST /api/adventures/:id/choice (flavor-only message, no LLM)](.scratch/ai-encounter/issues/03-choice-endpoint.md)
+- [x] [01 - encounterOutputSchema + validateEncounterActions() (TDD)](.scratch/ai-encounter/issues/01-encounter-schema-and-validation.md)
+- [x] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md) — implemented; live confirmation of the actual `gameState` payload deferred, see ticket
+- [x] [03 - POST /api/adventures/:id/choice (flavor-only message, no LLM)](.scratch/ai-encounter/issues/03-choice-endpoint.md) — implemented; live confirmation against a real adventure deferred, see ticket
 
 ### Checkpoint A — after 01-03
-- [ ] `pnpm test` passes — all new schema/validation tests, `persistence`/`quest-gameplay`'s existing tests still green after the `GET` extension
-- [ ] No live Anthropic calls made yet; nothing billed so far
-- [ ] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row
+- [x] `pnpm test` passes (73/73) — all new schema/validation tests, `persistence`/`quest-gameplay`'s existing tests still green after the `GET` extension
+- [x] No live Anthropic calls made yet; nothing billed so far
+- [ ] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row — **deferred**: no existing test adventure and no DB/service-role access this session; creating one requires the same live-billed Adventure Planner call blocked by `ai-planner`'s usage limit (resets 2026-10-01). Unauthenticated-request behavior (`307`) was confirmed live instead.
 
 ### Phase: First live integration
-- [ ] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md)
+- [x] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md) — implemented; live verification deferred, see below
 
 ### Checkpoint B — after 04
-- [ ] `generateEncounter()` proven against at least one real, live call — **at risk of the same deferral `ai-planner` hit**: that module's live verification was blocked on an Anthropic account usage limit that resets 2026-10-01. If still blocked when this task runs, defer the same way (explicit, tracked gap in this plan and in `SPEC-ai-encounter.md`, not silently accepted), and proceed on typecheck/lint/unit-test/code-review confidence alone, same as `ai-planner` tasks 04–05.
-- [ ] Live-call count for this checkpoint stayed small and deliberate (no retry-looping to work around a limit)
+- [ ] `generateEncounter()` proven against at least one real, live call — **confirmed deferred**: the one attempt made hit the same Anthropic account usage limit `ai-planner` hit (`AI_APICallError`, resets 2026-10-01 at 00:00 UTC) — a billing/account block, not a code bug. Live verification of task 04 and task 05's end-to-end flow moves to after that date; implementation of task 05 proceeds on typecheck/lint/unit-test/code-review confidence alone, same as `ai-planner`. **Re-verify live before treating this module as done.**
+- [x] Live-call count for this checkpoint stayed small and deliberate (one attempt, no retry-looping to work around the limit)
 
 ### Phase: Vertical slice
-- [ ] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md)
+- [x] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md) — implemented; live confirmation deferred, see ticket
 
 ### Checkpoint C — AI Encounter complete
-- [ ] Every `SPEC-ai-encounter.md` Success Criteria box checked
-- [ ] Failure paths (unauthenticated, wrong owner, no current quest, invalid actions after retry) confirmed live without needing a live LLM call to succeed
-- [ ] Manual pass: one real end-to-end encounter (arrive → talk to Wizard → AI message + choices → objective completed → next quest, or adventure completed on the last quest) — **deferred if task 04's live verification is deferred, same dependency**
-- [ ] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR
-- [ ] Human reviews and merges
+- [ ] Every `SPEC-ai-encounter.md` Success Criteria box checked — **not yet: the live-dependent boxes (wrong-owner `404`, no-current-quest `409` live, full encounter flow) are deferred, see Checkpoint B**
+- [x] Failure paths not needing a live LLM call (unauthenticated on `arrival`/`choice`/`encounter`) confirmed live
+- [ ] Manual pass: one real end-to-end encounter (arrive → talk to Wizard → AI message + choices → objective completed → next quest, or adventure completed on the last quest) — **deferred, same dependency as Checkpoint B**
+- [x] `pnpm build`/`lint`/`test` all pass (73/73 tests; production build compiles)
+- [ ] CI green on the PR — pending, will confirm once pushed
+- [ ] Human reviews and merges — **outstanding**
 
 ## Risks and Mitigations
 

@@ -1,4 +1,4 @@
-Status: open
+Status: resolved
 Type: task
 Blocked by: none
 
@@ -9,16 +9,17 @@ Blocked by: none
 Add `useSendChoice(adventureId)` (`src/lib/game/hooks.ts`, `useMutation` + `fetchJson`, same shape as `useCheckArrival`) for the frontend to call when a choice button is tapped.
 
 **Acceptance criteria:**
-- [ ] `POST /api/adventures/:id/choice` rejects unauthenticated requests (`307` via the Proxy)
-- [ ] Returns `404` for another user's adventure id
-- [ ] Returns `400` for a missing/empty `label`
-- [ ] On success, inserts a `messages` row with `role: "user"` and `content` equal to the submitted `label`
-- [ ] `useSendChoice()` hook available for task 05's UI wiring
+- [x] `POST /api/adventures/:id/choice` rejects unauthenticated requests (`307` via the Proxy)
+- [x] Returns `404` for another user's adventure id
+- [x] Returns `400` for a missing/empty `label`
+- [x] On success, inserts a `messages` row with `role: "user"` and `content` equal to the submitted `label`
+- [x] `useSendChoice()` hook available for task 05's UI wiring
 
 **Verification:**
-- [ ] `pnpm test` passes (`choiceSchema` validation test)
-- [ ] `pnpm build`/`lint` pass
-- [ ] Manual: unauthenticated request → `307`; another user's adventure id → `404`; valid call against a real adventure → confirmed via direct DB query that a `messages` row was inserted with the right `role`/`content`
+- [x] `pnpm test` passes (`choiceSchema` validation test, 73/73 total)
+- [x] `pnpm build`/`lint` pass
+- [x] Manual: unauthenticated request → `307`, confirmed live
+- [ ] **Deferred, same dependency as tasks 02/04-05:** `404` for another user's adventure and a real `messages` insert both need an existing adventure — none available this session without a live-billed Adventure Planner call, currently blocked by `ai-planner`'s usage limit (resets 2026-10-01). Not silently skipped — tracked here.
 
 **Dependencies:** None
 

@@ -56,6 +56,24 @@ export function serializeAdventure(row: AdventureRow) {
 
 export type SerializedQuest = ReturnType<typeof serializeQuest>;
 
+export type GameStateRow = {
+  adventure_id: string;
+  current_quest_id: string | null;
+  inventory: string[];
+  updated_at: string;
+};
+
+export type SerializedGameState = ReturnType<typeof serializeGameState>;
+
+export function serializeGameState(row: GameStateRow) {
+  return {
+    adventureId: row.adventure_id,
+    currentQuestId: row.current_quest_id,
+    inventory: row.inventory,
+    updatedAt: row.updated_at,
+  };
+}
+
 export function serializeQuest(row: QuestRow) {
   return {
     id: row.id,
