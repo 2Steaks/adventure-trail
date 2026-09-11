@@ -50,7 +50,7 @@ Tracker items: `.scratch/ai-planner/issues/01`–`05`.
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Live Anthropic calls cost real money; exploratory debugging could run up an unexpected bill | Med | Free/pure logic built and tested first (tasks 01–03); live calls confined to tasks 04–05 and kept deliberately small in number, not looped |
-| `generateObject`'s retry path is hard to force live, so it might ship under-tested | Low | `invalidLocationIds()` itself is fully unit-tested (task 01) — the live call only needs to prove the SDK plumbing works, not re-prove logic already covered |
+| `generateText`/`Output.object()`'s retry path is hard to force live, so it might ship under-tested | Low | `invalidLocationIds()` itself is fully unit-tested (task 01) — the live call only needs to prove the SDK plumbing works, not re-prove logic already covered |
 | The multi-quest persistence (task 05) breaks something in `quest-gameplay` that assumed one quest | Low | Already mitigated — `quest-gameplay`'s arrival route resolves the current quest via `game_states.current_quest_id`, specifically designed for this |
 | `ANTHROPIC` env var missing in a deployed environment (Vercel preview/production) | Med | **Confirmed via `vercel env ls`: not set on Vercel at all** (only `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` exist there, across Development/Preview/Production). Local `pnpm dev` will work throughout implementation; the live Vercel preview will not, until this is added — same class of gap `auth` hit once before (`SPEC-foundation.md`'s Vercel env-vars history). Not blocking implementation, but blocking a real preview-URL exit-checkpoint verification. |
 

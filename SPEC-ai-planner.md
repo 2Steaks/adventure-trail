@@ -15,7 +15,7 @@ Out of scope: the Encounter Generator (`ai-encounter`, Phase 6) and anything abo
 
 New dependencies: `ai` (Vercel AI SDK) and `@ai-sdk/anthropic`.
 
-- **`generateObject`** with a Zod schema as the contract (`adventurePlanSchema`) — the LLM's raw output is never trusted past shape validation.
+- **`generateText` with an `Output.object()` output spec** (a Zod schema as the contract, `adventurePlanSchema`) — the LLM's raw output is never trusted past shape validation. Not `generateObject`: confirmed deprecated in the installed `ai` SDK version (7.0.97) via its own type declarations.
 - **`claude-opus-5`** — the "stronger" model `ROADMAP.md` calls for; runs once per adventure, quality-sensitive, latency tolerance is high.
 - **Direct `@ai-sdk/anthropic` wiring**, not the AI Gateway — matches `ROADMAP.md`'s explicit decision. `createAnthropic({ apiKey: process.env.ANTHROPIC })` reads the existing `ANTHROPIC` env var explicitly (already funded, confirmed present in `.env`) — this project already reads `SUPABASE_URL`/`SUPABASE_PUBLISHABLE_KEY` explicitly rather than relying on library-default env var names, and this follows the same precedent rather than requiring a rename to the SDK's default `ANTHROPIC_API_KEY`.
 - Reuses `places`' Overpass query + `rankPlaces()` — extracted into a shared `fetchNearbyPlaces()` (see Project Structure), since it's now called from two routes, not duplicated.
@@ -60,7 +60,11 @@ src/
 
 ```ts
 // src/lib/ai/planner.ts
-import { generateObject } from "ai";
+// generateObject is deprecated in the installed `ai` SDK version (7.0.97) —
+// confirmed via node_modules' own type declarations, not assumed from training
+// data (per this repo's source-driven-development convention). generateText
+// with an Output.object() output spec is the current replacement.
+import { generateText, Output } from "ai";
 import { anthropic } from "@/src/lib/ai/client";
 import { adventurePlanSchema, type AdventurePlan } from "@/src/lib/schemas/adventure-plan";
 import type { Place } from "@/src/lib/places/rank";
@@ -83,12 +87,12 @@ function invalidLocationIds(plan: AdventurePlan, locations: Place[]): string[] {
 }
 
 async function requestPlan(input: PlannerInput, correction?: string) {
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model: anthropic("claude-opus-5"),
-    schema: adventurePlanSchema,
     prompt: buildPrompt(input, correction),
+    output: Output.object({ schema: adventurePlanSchema }),
   });
-  return object;
+  return output;
 }
 
 export async function generateAdventurePlan(
@@ -137,7 +141,7 @@ export type AdventurePlan = z.infer<typeof adventurePlanSchema>;
 
 - `invalidLocationIds()` (`planner.test.ts`): returns `[]` when every `locationId` is valid; returns the offending ids when one or more aren't; empty `quests` never happens (schema enforces `.min(1)`) so not tested as a case. TDD — this is the actual game-rule check per `ROADMAP.md`'s "Location ID validation," same bar as `checkArrival()`.
 - `adventurePlanSchema` (`adventure-plan.test.ts`): valid shape accepted; empty `quests` array rejected; an invalid `type` value rejected — same pattern as every other schema in this codebase.
-- **Not unit-tested, verified manually instead** (same posture as every prior module, now with a real cost attached): the actual `generateObject` call, the retry behavior against a real model, and the full create-adventure flow end to end. Manual pass: create an adventure with a real location, confirm the persisted title/quests reference only real supplied landmarks, confirm `quest-gameplay`'s existing arrival flow works unmodified against the AI-selected first quest.
+- **Not unit-tested, verified manually instead** (same posture as every prior module, now with a real cost attached): the actual `generateText`/`Output.object()` call, the retry behavior against a real model, and the full create-adventure flow end to end. Manual pass: create an adventure with a real location, confirm the persisted title/quests reference only real supplied landmarks, confirm `quest-gameplay`'s existing arrival flow works unmodified against the AI-selected first quest.
 
 ## Boundaries
 
@@ -150,7 +154,7 @@ export type AdventurePlan = z.infer<typeof adventurePlanSchema>;
 - [ ] `POST /api/adventures` rejects unauthenticated requests, same as before
 - [ ] `POST /api/adventures` returns `400` for an invalid body (now including missing/out-of-range `startingLat`/`startingLng`), before calling Overpass or the LLM
 - [ ] A valid request with no nearby landmarks found returns a clear `502`-class error — no adventure row created
-- [ ] A valid request generates a real plan via `generateObject`, validates every `locationId` against the real candidate list, retries once on an invalid result, and fails explicitly (no DB writes) if the retry also fails
+- [ ] A valid request generates a real plan via `generateText`/`Output.object()`, validates every `locationId` against the real candidate list, retries once on an invalid result, and fails explicitly (no DB writes) if the retry also fails
 - [ ] A successful plan persists one `adventures` row, one `quests` row per generated quest (not just one), and one `game_states` row with `current_quest_id` = the first quest's id
 - [ ] `quest-gameplay`'s existing `/adventures/[id]` page and arrival flow work unmodified against an AI-generated quest — no changes needed there, confirming the earlier `current_quest_id`-based design decision was the right call
 - [ ] `invalidLocationIds()` and `adventurePlanSchema` tested per the Testing Strategy above, TDD
