@@ -34,8 +34,8 @@ Tracker items: `.scratch/places/issues/01`–`03`.
 - [x] Every `SPEC-places.md` Success Criteria box checked
 - [x] Manual pass: unauthenticated `curl` rejected; valid request against real coordinates returned real Trafalgar Square landmarks; the literal browser click-and-grant-permission interaction was **not** driven end-to-end — no browser automation available this session, flagged rather than claimed
 - [x] `pnpm build`/`lint`/`test` all pass
-- [ ] CI green on the PR — pending, will confirm once pushed
-- [ ] Human reviews and merges — **outstanding**
+- [x] CI green on the PR — [PR #11](https://github.com/2Steaks/dungeon-master-ai/pull/11) passed lint/test/build
+- [x] Human reviews and merges — PR #11 merged to `main` (`94d557a`), including a follow-up `createOverpassQuery()` extraction pushed to the branch before merge
 
 ## Risks and Mitigations
 
