@@ -27,9 +27,9 @@ Tracker items: `.scratch/foundation/issues/01`–`09`.
 - [ ] [03 - Mobile-first pixel-art layout + placeholder page](.scratch/foundation/issues/03-mobile-shell-layout.md)
 
 ### Checkpoint A — after 01–03
-- [ ] `pnpm test`, `pnpm build`, `pnpm lint` all pass
-- [ ] `pnpm dev` at a 375px viewport shows the pixel-art shell, not create-next-app boilerplate
-- [ ] Human visually reviews the shell before continuing
+- [x] `pnpm test`, `pnpm build`, `pnpm lint` all pass
+- [x] `pnpm dev` at a 375px viewport shows the pixel-art shell, not create-next-app boilerplate (verified via rendered HTML — no browser tool available this session, see task 02/03 notes)
+- [ ] Human visually reviews the shell before continuing — **outstanding, needs you to actually look at it**
 
 ### Phase: Independent, testable pieces
 - [ ] [04 - TanStack Query provider wiring](.scratch/foundation/issues/04-tanstack-query-provider.md)

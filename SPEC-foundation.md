@@ -108,6 +108,8 @@ export function Wizard({ state }: { state: WizardState }) {
 
 Tailwind v4 tokens go in `globals.css` under `@theme`, not a `tailwind.config.js`. Pixel-art look via `border-4`/hard shadows/no border-radius, not new abstractions.
 
+**`cva` calls: array-of-strings, grouped by concern, not one long string.** Every `variants.*` entry and the base classes list get written as a `string[]`, with a blank line and a short `// Comment` between concern groups (base/layout, interaction, validation, children) when there are enough classes to warrant it. See `src/components/ui/button.tsx` for the reference shape. This applies to every `cva`-based component going forward (later shadcn primitives, custom game components), not just `Button`.
+
 ## Testing Strategy
 
 - Framework: Vitest + Testing Library, `jsdom` environment, config in `vitest.config.ts` (excluded from `tsconfig`'s Next build).
