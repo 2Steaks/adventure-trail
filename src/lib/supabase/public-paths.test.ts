@@ -8,8 +8,12 @@ describe("isPublicPath", () => {
     ["/register", true],
     ["/auth", true],
     ["/auth/callback", true],
+    ["/api/auth/register", true],
+    ["/api/auth/login", true],
+    ["/api/auth/logout", true],
     ["/", false],
     ["/adventures", false],
+    ["/api/adventures", false],
   ])("isPublicPath(%s) === %s", (pathname, expected) => {
     expect(isPublicPath(pathname)).toBe(expected);
   });
