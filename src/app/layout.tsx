@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { geistSans, geistMono } from "@/src/lib/fonts";
+import { QueryProvider } from "@/src/lib/query/provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
