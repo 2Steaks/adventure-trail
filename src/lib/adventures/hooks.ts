@@ -4,41 +4,14 @@ import type {
   AdventureSummary,
   SerializedAdventure,
   SerializedQuest,
-  SerializedGameState,
 } from "@/src/lib/adventures/serialize";
-
-async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(path);
-  const responseBody = await response.json();
-
-  if (!response.ok) {
-    throw new Error(responseBody.error ?? "Something went wrong.");
-  }
-
-  return responseBody;
-}
-
-async function postJson(path: string, body: unknown) {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const responseBody = await response.json();
-
-  if (!response.ok) {
-    throw new Error(responseBody.error ?? "Something went wrong.");
-  }
-
-  return responseBody;
-}
+import { fetchJson } from "@/src/lib/http/fetch-json";
 
 export function useAdventures() {
   return useQuery({
     queryKey: ["adventures"],
     queryFn: () =>
-      getJson<{ adventures: AdventureSummary[] }>("/api/adventures"),
+      fetchJson<{ adventures: AdventureSummary[] }>("/api/adventures"),
   });
 }
 
@@ -46,10 +19,9 @@ export function useAdventure(id: string) {
   return useQuery({
     queryKey: ["adventures", id],
     queryFn: () =>
-      getJson<{
+      fetchJson<{
         adventure: SerializedAdventure;
         quests: SerializedQuest[];
-        gameState: SerializedGameState | null;
       }>(`/api/adventures/${id}`),
   });
 }
@@ -57,6 +29,13 @@ export function useAdventure(id: string) {
 export function useCreateAdventure() {
   return useMutation({
     mutationFn: (input: CreateAdventure) =>
-      postJson("/api/adventures", input),
+      fetchJson<{ success: true; adventure: SerializedAdventure }>(
+        "/api/adventures",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        },
+      ),
   });
 }

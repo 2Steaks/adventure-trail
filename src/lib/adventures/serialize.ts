@@ -36,14 +36,6 @@ export type QuestRow = {
   created_at: string;
 };
 
-export type GameStateRow = {
-  adventure_id: string;
-  current_quest_id: string | null;
-  state: Record<string, unknown>;
-  inventory: unknown[];
-  updated_at: string;
-};
-
 export function serializeAdventure(row: AdventureRow) {
   return {
     id: row.id,
@@ -78,17 +70,5 @@ export function serializeQuest(row: QuestRow) {
     radiusMeters: row.radius_meters,
     status: row.status,
     createdAt: row.created_at,
-  };
-}
-
-export type SerializedGameState = ReturnType<typeof serializeGameState>;
-
-export function serializeGameState(row: GameStateRow) {
-  return {
-    adventureId: row.adventure_id,
-    currentQuestId: row.current_quest_id,
-    state: row.state,
-    inventory: row.inventory,
-    updatedAt: row.updated_at,
   };
 }

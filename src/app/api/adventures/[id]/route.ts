@@ -3,10 +3,8 @@ import { requireUser } from "@/src/lib/supabase/require-user";
 import {
   serializeAdventure,
   serializeQuest,
-  serializeGameState,
   type AdventureRow,
   type QuestRow,
-  type GameStateRow,
 } from "@/src/lib/adventures/serialize";
 
 export async function GET(
@@ -48,22 +46,8 @@ export async function GET(
     return NextResponse.json({ error: questsError.message }, { status: 400 });
   }
 
-  const { data: gameState, error: gameStateError } = await supabase
-    .from("game_states")
-    .select("*")
-    .eq("adventure_id", id)
-    .maybeSingle();
-
-  if (gameStateError) {
-    return NextResponse.json(
-      { error: gameStateError.message },
-      { status: 400 },
-    );
-  }
-
   return NextResponse.json({
     adventure: serializeAdventure(adventure as AdventureRow),
     quests: (quests as QuestRow[]).map(serializeQuest),
-    gameState: gameState ? serializeGameState(gameState as GameStateRow) : null,
   });
 }
