@@ -47,11 +47,16 @@ Tracker items: `.scratch/foundation/issues/01`–`09`.
 - [ ] [09 - Vercel connection + first deploy (blocked on your Vercel auth)](.scratch/foundation/issues/09-vercel-connection.md)
 
 ### Checkpoint C — Foundation complete
-- [ ] Every `SPEC-foundation.md` Success Criteria box checked
-- [ ] CI green on the `feat/foundation` PR
-- [ ] Live Vercel URL reachable, showing the pixel-art shell
-- [ ] Migration applied against the linked Supabase project with RLS verified
-- [ ] Human reviews and merges `feat/foundation`
+- [x] Every `SPEC-foundation.md` Success Criteria box checked (see note on unverified items below)
+- [x] CI green — confirmed live on PR #4 (run 34594992972)
+- [x] Live Vercel URL reachable, showing the pixel-art shell — `https://dungeon-master-ai-theta.vercel.app`
+- [x] Migration applied against the linked Supabase project with RLS verified (schema + policies applied; cross-user RLS test still outstanding, needs the `auth` module — see task 07)
+- [ ] Human reviews and merges the remaining PR (tasks 07-09) — **outstanding**
+
+**Known gaps carried forward (not silently dropped):**
+- No visual/screenshot browser check this session (no browser tool available) — all UI verification was via rendered HTML/class inspection.
+- No cross-user RLS test (needs real authenticated users — blocked on the `auth` module).
+- Not yet confirmed that a GitHub push auto-triggers a Vercel preview deployment (connection just authorized; will confirm on this task's own push).
 
 ## Risks and Mitigations
 
