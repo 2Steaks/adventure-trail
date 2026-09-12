@@ -10,6 +10,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Wizard, type WizardState } from "@/src/components/game/wizard/Wizard";
 import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
+import { LoadingState, ErrorState } from "@/src/components/ui/status";
 
 export default function AdventureDetailPage({
   params,
@@ -17,7 +18,7 @@ export default function AdventureDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { data, isLoading, error } = useAdventure(id);
+  const { data, isLoading, error, refetch } = useAdventure(id);
   const checkArrival = useCheckArrival(id);
   const encounter = useEncounter(id);
   const sendChoice = useSendChoice(id);
@@ -36,17 +37,20 @@ export default function AdventureDetailPage({
   if (isLoading) {
     return (
       <main className="flex flex-1 items-center justify-center p-6">
-        <p className="text-sm">Loading...</p>
+        <LoadingState label="Loading adventure..." />
       </main>
     );
   }
 
   if (error || !data) {
     return (
-      <main className="flex flex-1 items-center justify-center p-6">
-        <p className="text-sm text-destructive">
-          {error?.message ?? "Adventure not found."}
-        </p>
+      <main className="flex w-full flex-1 items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <ErrorState
+            message={error?.message ?? "Adventure not found."}
+            onRetry={error ? () => refetch() : undefined}
+          />
+        </div>
       </main>
     );
   }
@@ -137,9 +141,12 @@ export default function AdventureDetailPage({
                     )}
 
                     {checkArrival.error && (
-                      <p className="mt-2 text-sm text-destructive">
-                        {checkArrival.error.message}
-                      </p>
+                      <div className="mt-2">
+                        <ErrorState
+                          message={checkArrival.error.message}
+                          onRetry={() => checkArrival.mutate()}
+                        />
+                      </div>
                     )}
                   </>
                 ) : (
@@ -157,9 +164,12 @@ export default function AdventureDetailPage({
                 )}
 
                 {encounter.error && (
-                  <p className="mt-2 text-sm text-destructive">
-                    {encounter.error.message}
-                  </p>
+                  <div className="mt-2">
+                    <ErrorState
+                      message={encounter.error.message}
+                      onRetry={() => encounter.mutate()}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -178,9 +188,16 @@ export default function AdventureDetailPage({
             )}
 
             {sendChoice.error && (
-              <p className="mt-2 text-sm text-destructive">
-                {sendChoice.error.message}
-              </p>
+              <div className="mt-2">
+                <ErrorState
+                  message={sendChoice.error.message}
+                  onRetry={
+                    sendChoice.variables
+                      ? () => sendChoice.mutate(sendChoice.variables)
+                      : undefined
+                  }
+                />
+              </div>
             )}
           </>
         )}

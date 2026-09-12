@@ -12,6 +12,7 @@ import {
   type CreateAdventure,
 } from "@/src/lib/schemas/adventure";
 import { Button } from "@/src/components/ui/button";
+import { ErrorState } from "@/src/components/ui/status";
 
 type AdventureFormFields = Omit<
   CreateAdventure,
@@ -158,12 +159,17 @@ export default function NewAdventurePage() {
         </select>
 
         {locationError && (
-          <p className="mt-4 text-sm text-destructive">{locationError}</p>
+          <div className="mt-4">
+            <ErrorState message={locationError} />
+          </div>
         )}
         {createAdventure.error && (
-          <p className="mt-4 text-sm text-destructive">
-            {createAdventure.error.message}
-          </p>
+          <div className="mt-4">
+            <ErrorState
+              message={createAdventure.error.message}
+              onRetry={() => createAdventure.reset()}
+            />
+          </div>
         )}
 
         <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
