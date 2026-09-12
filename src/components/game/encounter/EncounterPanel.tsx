@@ -17,7 +17,7 @@ export function EncounterPanel({
       <p className="text-sm">{output.message}</p>
 
       {output.choices.length > 0 ? (
-        <div className="mt-3 flex flex-col gap-2">
+        <div className="mt-3 flex flex-col gap-3">
           {output.choices.map((choice) => (
             <Button
               key={choice.id}

@@ -60,12 +60,17 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* Darkened from the shadcn default (oklch(0.556 0 0), ~4.6:1 on white) for
+     a stronger, sunlight-safe contrast margin against --background. */
+  --muted-foreground: oklch(0.42 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  /* Darkened from the shadcn default (oklch(0.922 0 0)) — the "outline"
+     Button variant and card edges use this and were nearly invisible in
+     bright light. */
+  --border: oklch(0.65 0 0);
+  --input: oklch(0.65 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -130,5 +135,9 @@
   }
   html {
     @apply font-sans;
+    /* Bumps the rem base from 16px to 18px so every Tailwind text/spacing
+       utility scales up uniformly — outdoor/glare legibility, not a
+       per-component font-size change. */
+    font-size: 112.5%;
   }
 }

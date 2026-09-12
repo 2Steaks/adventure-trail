@@ -110,13 +110,22 @@ export async function POST(request: Request) {
       locations: candidates,
     });
   } catch (error) {
+    // Any planner failure (invalid output after retry, or a raw AI SDK
+    // error like a bad API key/network/rate-limit) must surface as a
+    // JSON error, never an unhandled crash — an uncaught throw here
+    // reaches the client as a bodyless, non-JSON 500 that fetchJson()
+    // then misreports as an expired session.
+    console.error("Adventure Planner call failed", error);
     if (error instanceof AdventurePlanError) {
       return NextResponse.json(
         { error: "Couldn't plan an adventure for that location. Try again." },
         { status: 502 },
       );
     }
-    throw error;
+    return NextResponse.json(
+      { error: "The AI adventure planner is unavailable. Try again." },
+      { status: 502 },
+    );
   }
 
   const { data: adventure, error: adventureError } = await adventuresRepository.createAdventure(supabase, {

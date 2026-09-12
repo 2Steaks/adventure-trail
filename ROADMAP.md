@@ -78,7 +78,7 @@ This is the whole-project phased plan, derived from `CAPABILITY_MAP.md`'s module
 
 ### Phase 7 — Mobile Polish
 **Modules:** `mobile-polish`
-**Ships:** loading/error states, outdoor-readability pass, touch target audit, wizard animation, arrival celebration, quest transitions, safe-area handling, and the resume check.
+**Ships:** loading/error states, outdoor-readability pass, touch target audit, arrival celebration, quest transitions, safe-area handling, and the resume check.
 **Exit checkpoint (from `notes/original_plan.md`):**
 > Play → complete quest → close browser → reopen → same progress
 **Key risk:** none architecturally — mostly UI/UX time sink; time-box this phase.

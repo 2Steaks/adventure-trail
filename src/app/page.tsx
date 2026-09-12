@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useAdventures } from "@/src/lib/adventures/hooks";
 import { Button } from "@/src/components/ui/button";
 import { LogoutButton } from "@/src/components/auth/logout-button";
+import { LoadingState, ErrorState } from "@/src/components/ui/status";
 
 export default function Home() {
-  const { data, isLoading, error } = useAdventures();
+  const { data, isLoading, error, refetch } = useAdventures();
   const adventures = data?.adventures ?? [];
 
   return (
@@ -25,11 +26,9 @@ export default function Home() {
       </div>
 
       <div className="w-full max-w-sm">
-        {isLoading && <p className="text-center text-sm">Loading...</p>}
+        {isLoading && <LoadingState label="Loading adventures..." />}
         {error && (
-          <p className="text-center text-sm text-destructive">
-            {error.message}
-          </p>
+          <ErrorState message={error.message} onRetry={() => refetch()} />
         )}
         {!isLoading && !error && adventures.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">

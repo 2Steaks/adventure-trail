@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useAdventure } from "@/src/lib/adventures/hooks";
 import {
   useCheckArrival,
@@ -10,6 +10,7 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Wizard, type WizardState } from "@/src/components/game/wizard/Wizard";
 import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
+import { LoadingState, ErrorState } from "@/src/components/ui/status";
 
 export default function AdventureDetailPage({
   params,
@@ -17,12 +18,15 @@ export default function AdventureDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { data, isLoading, error } = useAdventure(id);
+  const { data, isLoading, error, refetch } = useAdventure(id);
   const checkArrival = useCheckArrival(id);
   const encounter = useEncounter(id);
   const sendChoice = useSendChoice(id);
 
   const currentQuestId = data?.gameState.currentQuestId;
+  const currentQuest = data?.quests.find((quest) => quest.id === currentQuestId);
+  const arrived =
+    checkArrival.data?.arrived ?? currentQuest?.status === "completed";
 
   // The current quest advances server-side (via useEncounter's query
   // invalidation) as soon as an encounter completes an objective — reset
@@ -33,27 +37,49 @@ export default function AdventureDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestId]);
 
+  // Celebrate only the *transition* into arrived, not an already-arrived
+  // quest. `checkArrival`'s mutation state isn't persisted, so a reload
+  // always starts `arrived` at false (or true only via the `status ===
+  // "completed"` fallback, which can't happen for the *current* quest —
+  // completing a quest always advances current_quest_id in the same
+  // transaction) — either way, wasArrivedRef starts fresh each mount, so
+  // this can never re-fire for a quest arrived at before the reload.
+  const [showCelebration, setShowCelebration] = useState(false);
+  const wasArrivedRef = useRef(arrived);
+  useEffect(() => {
+    const wasArrived = wasArrivedRef.current;
+    wasArrivedRef.current = arrived;
+    if (arrived && !wasArrived) {
+      setShowCelebration(true);
+      const timeout = setTimeout(() => setShowCelebration(false), 1600);
+      return () => clearTimeout(timeout);
+    }
+  }, [arrived]);
+
   if (isLoading) {
     return (
       <main className="flex flex-1 items-center justify-center p-6">
-        <p className="text-sm">Loading...</p>
+        <LoadingState label="Loading adventure..." />
       </main>
     );
   }
 
   if (error || !data) {
+    // "Not found" is a hard failure (the API's literal message for a 404) —
+    // retrying the same request can't fix a missing/not-yours adventure,
+    // unlike a transient network/server error.
+    const isNotFound = error?.message === "Not found";
     return (
-      <main className="flex flex-1 items-center justify-center p-6">
-        <p className="text-sm text-destructive">
-          {error?.message ?? "Adventure not found."}
-        </p>
+      <main className="flex w-full flex-1 items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <ErrorState
+            message={error?.message ?? "Adventure not found."}
+            onRetry={error && !isNotFound ? () => refetch() : undefined}
+          />
+        </div>
       </main>
     );
   }
-
-  const currentQuest = data.quests.find((quest) => quest.id === currentQuestId);
-  const arrived =
-    checkArrival.data?.arrived ?? currentQuest?.status === "completed";
 
   let wizardState: WizardState = "idle";
   if (encounter.isPending) {
@@ -94,14 +120,29 @@ export default function AdventureDetailPage({
           <Wizard state={wizardState} />
         </div>
 
+        {showCelebration && (
+          <p
+            role="status"
+            className="mt-2 text-center text-sm font-black uppercase text-primary motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in"
+          >
+            You made it!
+          </p>
+        )}
+
         {adventureFinished ? (
-          <p className="mt-4 text-center text-lg font-black uppercase text-primary">
+          <p
+            key="finished"
+            className="mt-4 text-center text-lg font-black uppercase text-primary motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+          >
             Adventure Complete!
           </p>
         ) : (
           <>
             {currentQuest && (
-              <div className="mt-4 border-2 border-foreground bg-background p-4">
+              <div
+                key={currentQuest.id}
+                className="mt-4 border-2 border-foreground bg-background p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+              >
                 <p className="text-sm font-bold uppercase">
                   {currentQuest.landmarkName}
                 </p>
@@ -137,9 +178,12 @@ export default function AdventureDetailPage({
                     )}
 
                     {checkArrival.error && (
-                      <p className="mt-2 text-sm text-destructive">
-                        {checkArrival.error.message}
-                      </p>
+                      <div className="mt-2">
+                        <ErrorState
+                          message={checkArrival.error.message}
+                          onRetry={() => checkArrival.mutate()}
+                        />
+                      </div>
                     )}
                   </>
                 ) : (
@@ -157,9 +201,12 @@ export default function AdventureDetailPage({
                 )}
 
                 {encounter.error && (
-                  <p className="mt-2 text-sm text-destructive">
-                    {encounter.error.message}
-                  </p>
+                  <div className="mt-2">
+                    <ErrorState
+                      message={encounter.error.message}
+                      onRetry={() => encounter.mutate()}
+                    />
+                  </div>
                 )}
               </div>
             )}
@@ -178,9 +225,16 @@ export default function AdventureDetailPage({
             )}
 
             {sendChoice.error && (
-              <p className="mt-2 text-sm text-destructive">
-                {sendChoice.error.message}
-              </p>
+              <div className="mt-2">
+                <ErrorState
+                  message={sendChoice.error.message}
+                  onRetry={
+                    sendChoice.variables
+                      ? () => sendChoice.mutate(sendChoice.variables)
+                      : undefined
+                  }
+                />
+              </div>
             )}
           </>
         )}

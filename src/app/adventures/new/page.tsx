@@ -12,6 +12,7 @@ import {
   type CreateAdventure,
 } from "@/src/lib/schemas/adventure";
 import { Button } from "@/src/components/ui/button";
+import { ErrorState } from "@/src/components/ui/status";
 
 type AdventureFormFields = Omit<
   CreateAdventure,
@@ -87,7 +88,7 @@ export default function NewAdventurePage() {
           id="theme"
           type="text"
           {...register("theme")}
-          className="mt-1 w-full border-2 border-foreground bg-background p-2"
+          className="mt-1 min-h-11 w-full border-2 border-foreground bg-background p-2"
         />
         {errors.theme && (
           <p className="mt-1 text-sm text-destructive">{errors.theme.message}</p>
@@ -102,7 +103,7 @@ export default function NewAdventurePage() {
               id="ageMin"
               type="number"
               {...register("ageMin", { valueAsNumber: true })}
-              className="mt-1 w-full border-2 border-foreground bg-background p-2"
+              className="mt-1 min-h-11 w-full border-2 border-foreground bg-background p-2"
             />
           </div>
           <div className="flex-1">
@@ -113,7 +114,7 @@ export default function NewAdventurePage() {
               id="ageMax"
               type="number"
               {...register("ageMax", { valueAsNumber: true })}
-              className="mt-1 w-full border-2 border-foreground bg-background p-2"
+              className="mt-1 min-h-11 w-full border-2 border-foreground bg-background p-2"
             />
           </div>
         </div>
@@ -132,7 +133,7 @@ export default function NewAdventurePage() {
         <select
           id="durationMinutes"
           {...register("durationMinutes", { valueAsNumber: true })}
-          className="mt-1 w-full border-2 border-foreground bg-background p-2"
+          className="mt-1 min-h-11 w-full border-2 border-foreground bg-background p-2"
         >
           <option value={30}>30 min</option>
           <option value={60}>60 min</option>
@@ -149,7 +150,7 @@ export default function NewAdventurePage() {
         <select
           id="maxDistanceMeters"
           {...register("maxDistanceMeters", { valueAsNumber: true })}
-          className="mt-1 w-full border-2 border-foreground bg-background p-2"
+          className="mt-1 min-h-11 w-full border-2 border-foreground bg-background p-2"
         >
           <option value={500}>500 m</option>
           <option value={1000}>1 km</option>
@@ -158,12 +159,17 @@ export default function NewAdventurePage() {
         </select>
 
         {locationError && (
-          <p className="mt-4 text-sm text-destructive">{locationError}</p>
+          <div className="mt-4">
+            <ErrorState message={locationError} />
+          </div>
         )}
         {createAdventure.error && (
-          <p className="mt-4 text-sm text-destructive">
-            {createAdventure.error.message}
-          </p>
+          // No onRetry: there's nothing to retry yet, only the form's own
+          // "Create Adventure" button below re-submits — a "Try again"
+          // button here would just clear the message without resubmitting.
+          <div className="mt-4">
+            <ErrorState message={createAdventure.error.message} />
+          </div>
         )}
 
         <Button type="submit" className="mt-6 w-full" disabled={isSubmitting}>
