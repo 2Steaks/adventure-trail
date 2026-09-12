@@ -37,8 +37,13 @@ export default function AdventureDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestId]);
 
-  // Celebrate only the *transition* into arrived — not an already-arrived
-  // quest freshly loaded from the server (e.g. a page reload after arriving).
+  // Celebrate only the *transition* into arrived, not an already-arrived
+  // quest. `checkArrival`'s mutation state isn't persisted, so a reload
+  // always starts `arrived` at false (or true only via the `status ===
+  // "completed"` fallback, which can't happen for the *current* quest —
+  // completing a quest always advances current_quest_id in the same
+  // transaction) — either way, wasArrivedRef starts fresh each mount, so
+  // this can never re-fire for a quest arrived at before the reload.
   const [showCelebration, setShowCelebration] = useState(false);
   const wasArrivedRef = useRef(arrived);
   useEffect(() => {
@@ -60,12 +65,16 @@ export default function AdventureDetailPage({
   }
 
   if (error || !data) {
+    // "Not found" is a hard failure (the API's literal message for a 404) —
+    // retrying the same request can't fix a missing/not-yours adventure,
+    // unlike a transient network/server error.
+    const isNotFound = error?.message === "Not found";
     return (
       <main className="flex w-full flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <ErrorState
             message={error?.message ?? "Adventure not found."}
-            onRetry={error ? () => refetch() : undefined}
+            onRetry={error && !isNotFound ? () => refetch() : undefined}
           />
         </div>
       </main>

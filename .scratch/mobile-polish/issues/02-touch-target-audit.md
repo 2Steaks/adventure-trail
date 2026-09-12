@@ -4,10 +4,16 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Every `<input>`/`<select>` on `/adventures/new` has a minimum 44px tap height
-- [ ] `EncounterPanel`'s stacked choice buttons have adequate gap between them so an adjacent tap can't be mis-hit
-- [ ] `Wizard` component and any other non-`Button` tappable elements checked (or explicitly confirmed non-interactive, if it stays decorative-only per `SPEC-ai-encounter.md`)
-- [ ] No regressions to existing `Button` sizing/variants used elsewhere
-- [ ] `pnpm build`/`lint`/`test` pass
+- [x] Every `<input>`/`<select>` on `/adventures/new` has a minimum 44px tap height
+- [x] `EncounterPanel`'s stacked choice buttons have adequate gap between them so an adjacent tap can't be mis-hit
+- [x] `Wizard` component and any other non-`Button` tappable elements checked (or explicitly confirmed non-interactive, if it stays decorative-only per `SPEC-ai-encounter.md`)
+- [x] No regressions to existing `Button` sizing/variants used elsewhere
+- [x] `pnpm build`/`lint`/`test` pass
+
+## Answer
+
+`min-h-11` added to all 5 form controls on `/adventures/new` (theme input, ageMin/ageMax, duration/distance selects). `EncounterPanel`'s choice-button gap widened `gap-2` → `gap-3`.
+
+`Wizard.tsx` checked: `role="img"`, `aria-label`, no `onClick`/interactive handlers of any kind — confirmed still purely decorative, exactly as `SPEC-ai-encounter.md` specifies. No change needed there. The Google-Maps `<a>`-wrapped `Button` was also checked — the anchor is a plain inline wrapper around a `w-full` block-level Button, so its hit area equals the button's, no separate fix needed.

@@ -164,11 +164,11 @@ export default function NewAdventurePage() {
           </div>
         )}
         {createAdventure.error && (
+          // No onRetry: there's nothing to retry yet, only the form's own
+          // "Create Adventure" button below re-submits — a "Try again"
+          // button here would just clear the message without resubmitting.
           <div className="mt-4">
-            <ErrorState
-              message={createAdventure.error.message}
-              onRetry={() => createAdventure.reset()}
-            />
+            <ErrorState message={createAdventure.error.message} />
           </div>
         )}
 
