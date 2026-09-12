@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { nearbyPlacesQuerySchema } from "@/src/lib/schemas/places";
 import {
-  fetchNearbyPlaces,
   NearbyPlacesFetchError,
-} from "@/src/lib/places/fetch-nearby-places";
+  overpassClient,
+} from "@/src/lib/places/client";
 
 export async function GET(request: Request) {
   const { user } = await requireUser();
+
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const places = await fetchNearbyPlaces(query.data);
+    const places = await overpassClient.findNearbyPlaces(query.data);
     return NextResponse.json({ places });
   } catch (error) {
     if (error instanceof NearbyPlacesFetchError) {
