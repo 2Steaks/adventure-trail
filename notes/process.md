@@ -16,6 +16,6 @@ What I did:
 - instructed AI to build TDD style
 - instructed AI to move clients + API keys to backend endpoints
 - instructed AI to move fonts to a dedicated module
-- instructed AI to move Supabase queries to a repository (WIP)
+- instructed AI to move Supabase queries to dedicated clients
+- refactored Overpass into a client
 - refactored Overpass query to a function with better formatting
-- create a handler for overpass (WIP)

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
+import { AdventureClient } from "@/src/lib/adventures/client";
+import { QuestClient } from "@/src/lib/quests/client";
+import { GameStateClient } from "@/src/lib/game/client";
 import {
   serializeAdventure,
   serializeGameState,
   serializeQuest,
-  type AdventureRow,
-  type GameStateRow,
-  type QuestRow,
 } from "@/src/lib/adventures/serialize";
 
 export async function GET(
@@ -19,13 +19,12 @@ export async function GET(
   }
 
   const { id } = await params;
+  const adventureClient = new AdventureClient(supabase);
+  const questClient = new QuestClient(supabase);
+  const gameStateClient = new GameStateClient(supabase);
 
-  const { data: adventure, error: adventureError } = await supabase
-    .from("adventures")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: adventure, error: adventureError } =
+    await adventureClient.getById(id, user.id);
 
   if (adventureError) {
     return NextResponse.json(
@@ -38,21 +37,15 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const { data: quests, error: questsError } = await supabase
-    .from("quests")
-    .select("*")
-    .eq("adventure_id", id)
-    .order("position", { ascending: true });
+  const { data: quests, error: questsError } =
+    await questClient.getByAdventureId(id);
 
   if (questsError) {
     return NextResponse.json({ error: questsError.message }, { status: 400 });
   }
 
-  const { data: gameState, error: gameStateError } = await supabase
-    .from("game_states")
-    .select("*")
-    .eq("adventure_id", id)
-    .single();
+  const { data: gameState, error: gameStateError } =
+    await gameStateClient.getByAdventureId(id);
 
   if (gameStateError) {
     return NextResponse.json(
@@ -62,8 +55,11 @@ export async function GET(
   }
 
   return NextResponse.json({
-    adventure: serializeAdventure(adventure as AdventureRow),
-    quests: (quests as QuestRow[]).map(serializeQuest),
-    gameState: serializeGameState(gameState as GameStateRow),
+    adventure: serializeAdventure(adventure),
+    quests: quests.map(serializeQuest),
+    gameState: serializeGameState({
+      ...gameState,
+      inventory: (gameState.inventory as string[] | null) ?? [],
+    }),
   });
 }

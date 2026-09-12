@@ -2,17 +2,22 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { arrivalCheckSchema } from "@/src/lib/schemas/arrival";
 import { checkArrival } from "@/src/lib/game/arrival";
+import { AdventureClient } from "@/src/lib/adventures/client";
+import { QuestClient } from "@/src/lib/quests/client";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { user, supabase } = await requireUser();
+
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
+  const adventureClient = new AdventureClient(supabase);
+  const questClient = new QuestClient(supabase);
 
   let json: unknown;
   try {
@@ -26,12 +31,8 @@ export async function POST(
     return NextResponse.json({ error: "Invalid location." }, { status: 400 });
   }
 
-  const { data: adventure, error: adventureError } = await supabase
-    .from("adventures")
-    .select("id, game_states(current_quest_id)")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: adventure, error: adventureError } =
+    await adventureClient.getWithGameState(id, user.id);
 
   if (adventureError) {
     return NextResponse.json(
@@ -40,13 +41,10 @@ export async function POST(
     );
   }
 
-  // game_states.adventure_id is that table's primary key, so this embed is
-  // a to-one relationship and returns a single object at runtime — even
-  // though supabase-js's untyped-client inference (no generated DB types
-  // in this project) mistypes it as an array. Confirmed live.
-  const currentQuestId = (
-    adventure?.game_states as unknown as { current_quest_id: string | null } | null
-  )?.current_quest_id;
+  // game_states.adventure_id is that table's primary key, and the
+  // generated Database types mark that FK isOneToOne — so this embed is
+  // already typed as a single nullable object, no cast needed.
+  const currentQuestId = adventure?.game_states?.current_quest_id ?? null;
 
   if (!adventure || !currentQuestId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -57,15 +55,13 @@ export async function POST(
   // ships (adventures.route.ts's questsTotal/questsCompleted already
   // assume this), and current_quest_id is the source of truth for which
   // one is active.
-  const { data: quest, error: questError } = await supabase
-    .from("quests")
-    .select("*")
-    .eq("id", currentQuestId)
-    .maybeSingle();
+  const { data: quest, error: questError } =
+    await questClient.getQuest(currentQuestId);
 
   if (questError) {
     return NextResponse.json({ error: questError.message }, { status: 400 });
   }
+  
   if (!quest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

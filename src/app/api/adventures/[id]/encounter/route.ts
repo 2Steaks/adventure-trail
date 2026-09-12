@@ -5,27 +5,29 @@ import {
   EncounterError,
   type EncounterMessage,
 } from "@/src/lib/ai/encounter";
-import type { QuestRow } from "@/src/lib/adventures/serialize";
+import { AdventureClient } from "@/src/lib/adventures/client";
+import { QuestClient } from "@/src/lib/quests/client";
+import { GameStateClient } from "@/src/lib/game/client";
+import { MessageClient } from "@/src/lib/messages/client";
 
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { user, supabase } = await requireUser();
+
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
+  const adventureClient = new AdventureClient(supabase);
+  const questClient = new QuestClient(supabase);
+  const gameStateClient = new GameStateClient(supabase);
+  const messageClient = new MessageClient(supabase);
 
-  const { data: adventure, error: adventureError } = await supabase
-    .from("adventures")
-    .select(
-      "id, theme, age_min, age_max, game_states(current_quest_id, inventory)",
-    )
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: adventure, error: adventureError } =
+    await adventureClient.getForEncounter(id, user.id);
 
   if (adventureError) {
     return NextResponse.json(
@@ -38,12 +40,13 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // game_states.adventure_id is that table's primary key, so this embed is
-  // a to-one relationship — see the same note in arrival/route.ts.
-  const gameState = adventure.game_states as unknown as {
-    current_quest_id: string | null;
-    inventory: string[];
-  } | null;
+  // game_states.adventure_id is that table's primary key, and the
+  // generated Database types mark that FK isOneToOne, so this embed is
+  // already typed as a single nullable object — only `inventory` (a Json
+  // column) needs narrowing to the string[] shape this app actually
+  // stores there.
+  const gameState = adventure.game_states;
+  const inventoryFromDb = (gameState?.inventory as string[] | undefined) ?? [];
   // Read fresh on every call, never cached across requests — a repeat call
   // after a completion has already advanced current_quest_id, so it starts
   // a new encounter for the new current quest rather than re-completing
@@ -60,17 +63,8 @@ export async function POST(
   // Neither query depends on the other's result — both only need `id` —
   // so they run concurrently rather than as two sequential round trips.
   const [questsResult, messagesResult] = await Promise.all([
-    supabase
-      .from("quests")
-      .select("*")
-      .eq("adventure_id", id)
-      .order("position", { ascending: true }),
-    supabase
-      .from("messages")
-      .select("role, content")
-      .eq("adventure_id", id)
-      .order("created_at", { ascending: false })
-      .limit(10),
+    questClient.getByAdventureId(id),
+    messageClient.getRecent(id, 10),
   ]);
 
   if (questsResult.error) {
@@ -86,8 +80,10 @@ export async function POST(
     );
   }
 
-  const allQuests = questsResult.data as QuestRow[];
-  const currentIndex = allQuests.findIndex((quest) => quest.id === currentQuestId);
+  const allQuests = questsResult.data;
+  const currentIndex = allQuests.findIndex(
+    (quest) => quest.id === currentQuestId,
+  );
   const currentQuest = allQuests[currentIndex];
 
   if (!currentQuest) {
@@ -95,7 +91,14 @@ export async function POST(
   }
 
   const nextQuest = allQuests[currentIndex + 1] ?? null;
-  const recentMessages = messagesResult.data;
+  // messages.role is a plain string column in the DB (no CHECK constraint
+  // reflected in the generated types) — narrowed to the "user" | "assistant"
+  // union here since MessageClient.insert is the only writer and only ever
+  // writes one of those two values.
+  const recentMessages = messagesResult.data.map((message) => ({
+    role: message.role as EncounterMessage["role"],
+    content: message.content,
+  }));
 
   let output;
   try {
@@ -111,10 +114,8 @@ export async function POST(
       completedQuestObjectives: allQuests
         .filter((quest) => quest.status === "completed")
         .map((quest) => quest.objective),
-      inventory: gameState?.inventory ?? [],
-      recentMessages: (recentMessages as EncounterMessage[])
-        .slice()
-        .reverse(),
+      inventory: inventoryFromDb,
+      recentMessages: recentMessages.slice().reverse(),
       isFinalQuest: nextQuest === null,
     });
   } catch (error) {
@@ -123,9 +124,11 @@ export async function POST(
     // surface as JSON, never an unhandled crash that fetchJson()
     // misreports as an expired session.
     console.error("Encounter Generator call failed", error);
+
     if (error instanceof EncounterError) {
       return NextResponse.json({ error: error.message }, { status: 502 });
     }
+
     return NextResponse.json(
       { error: "The wizard is unavailable right now. Try again." },
       { status: 502 },
@@ -136,14 +139,15 @@ export async function POST(
   // from the inventory already loaded above — no need to re-read
   // game_states between actions since nothing else in this loop touches
   // the inventory column.
-  let inventory = gameState?.inventory ?? [];
+  let inventory = inventoryFromDb;
 
   for (const action of output.actions) {
     if (action.type === "COMPLETE_OBJECTIVE") {
-      const { error: questUpdateError } = await supabase
-        .from("quests")
-        .update({ status: "completed" })
-        .eq("id", action.questId);
+      const { error: questUpdateError } = await questClient.updateStatus(
+        action.questId,
+        "completed",
+      );
+
       if (questUpdateError) {
         return NextResponse.json(
           { error: questUpdateError.message },
@@ -151,10 +155,9 @@ export async function POST(
         );
       }
 
-      const { error: gameStateUpdateError } = await supabase
-        .from("game_states")
-        .update({ current_quest_id: nextQuest?.id ?? null })
-        .eq("adventure_id", id);
+      const { error: gameStateUpdateError } =
+        await gameStateClient.updateCurrentQuest(id, nextQuest?.id ?? null);
+
       if (gameStateUpdateError) {
         return NextResponse.json(
           { error: gameStateUpdateError.message },
@@ -163,10 +166,9 @@ export async function POST(
       }
 
       if (!nextQuest) {
-        const { error: adventureUpdateError } = await supabase
-          .from("adventures")
-          .update({ status: "completed" })
-          .eq("id", id);
+        const { error: adventureUpdateError } =
+          await adventureClient.updateStatus(id, "completed");
+
         if (adventureUpdateError) {
           return NextResponse.json(
             { error: adventureUpdateError.message },
@@ -179,10 +181,9 @@ export async function POST(
     if (action.type === "ADD_ITEM") {
       inventory = [...inventory, action.itemId];
 
-      const { error: inventoryUpdateError } = await supabase
-        .from("game_states")
-        .update({ inventory })
-        .eq("adventure_id", id);
+      const { error: inventoryUpdateError } =
+        await gameStateClient.updateInventory(id, inventory);
+
       if (inventoryUpdateError) {
         return NextResponse.json(
           { error: inventoryUpdateError.message },
@@ -192,8 +193,8 @@ export async function POST(
     }
   }
 
-  const { error: messageInsertError } = await supabase.from("messages").insert({
-    adventure_id: id,
+  const { error: messageInsertError } = await messageClient.insert({
+    adventureId: id,
     role: "assistant",
     content: output.message,
   });

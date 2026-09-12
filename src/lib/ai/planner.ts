@@ -55,6 +55,7 @@ async function requestPlan(
     prompt: buildPrompt(input, correction),
     output: Output.object({ schema: adventurePlanSchema }),
   });
+
   return output;
 }
 
@@ -63,6 +64,7 @@ export async function generateAdventurePlan(
 ): Promise<AdventurePlan> {
   const first = await requestPlan(input);
   const firstInvalid = invalidLocationIds(first, input.locations);
+
   if (firstInvalid.length === 0) {
     return first;
   }
@@ -71,7 +73,9 @@ export async function generateAdventurePlan(
     input,
     `Your previous response used locationId(s) not in the supplied list: ${firstInvalid.join(", ")}. You may only use the ids given above.`,
   );
+
   const retryInvalid = invalidLocationIds(retry, input.locations);
+
   if (retryInvalid.length === 0) {
     return retry;
   }
