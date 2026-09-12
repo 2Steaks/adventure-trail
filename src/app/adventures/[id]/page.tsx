@@ -156,7 +156,7 @@ export default function AdventureDetailPage({
                     {mapsUrl && (
                       <a href={mapsUrl} target="_blank" rel="noreferrer">
                         <Button variant="outline" className="mt-4 w-full">
-                          Open in Google Maps
+                          Open Map
                         </Button>
                       </a>
                     )}

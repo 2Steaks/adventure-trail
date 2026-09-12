@@ -28,6 +28,7 @@ export default function NewAdventurePage() {
   const createAdventure = useCreateAdventure();
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -54,6 +55,7 @@ export default function NewAdventurePage() {
       setIsLocating(false);
       return;
     }
+    
     setIsLocating(false);
 
     createAdventure.mutate(
