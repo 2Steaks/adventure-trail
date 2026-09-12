@@ -28,7 +28,7 @@ export async function POST(
 
   const { data: adventure, error: adventureError } = await supabase
     .from("adventures")
-    .select("id, status, game_states(current_quest_id)")
+    .select("id, game_states(current_quest_id)")
     .eq("id", id)
     .eq("user_id", user.id)
     .maybeSingle();
@@ -76,37 +76,15 @@ export async function POST(
     radiusMeters: quest.radius_meters,
   });
 
-  if (result.arrived) {
-    // Each write is gated on its own current status, not on the other
-    // table's — so a partial failure (e.g. the quest update succeeds but
-    // the adventure update doesn't) is recoverable on retry, rather than
-    // permanently skipped because "the quest already looks completed."
-    if (quest.status !== "completed") {
-      const { error: questUpdateError } = await supabase
-        .from("quests")
-        .update({ status: "completed" })
-        .eq("id", quest.id);
-      if (questUpdateError) {
-        return NextResponse.json(
-          { error: questUpdateError.message },
-          { status: 400 },
-        );
-      }
-    }
-
-    if (adventure.status !== "completed") {
-      const { error: adventureUpdateError } = await supabase
-        .from("adventures")
-        .update({ status: "completed" })
-        .eq("id", id);
-      if (adventureUpdateError) {
-        return NextResponse.json(
-          { error: adventureUpdateError.message },
-          { status: 400 },
-        );
-      }
-    }
-  }
-
+  // Arrival is a pure proximity check — it only unlocks the "Talk to the
+  // Wizard" button. It must never itself complete the quest or adventure:
+  // since ai-encounter shipped, generateEncounter()'s COMPLETE_OBJECTIVE
+  // action (applied in encounter/route.ts) is the sole authority on
+  // whether a quest's objective is actually resolved. Marking completion
+  // here too (this route's original, single-quest-era behavior) let an
+  // adventure with more quests remaining get flagged "completed" the
+  // instant the player reached the first landmark, before the wizard
+  // encounter ever ran — found live 2026-09-12, see
+  // .scratch/quest-gameplay/issues/03-arrival-vertical-slice.md.
   return NextResponse.json(result);
 }

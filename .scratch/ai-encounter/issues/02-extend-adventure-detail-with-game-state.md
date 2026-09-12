@@ -19,7 +19,7 @@ Every adventure gets a `game_states` row at creation time already (`ai-planner` 
 - [x] `pnpm test` passes (existing tests unaffected; added `serialize.test.ts` covering `serializeGameState()`, 70/70 total)
 - [x] `pnpm build`/`lint` pass
 - [x] Manual: unauthenticated request against `GET /api/adventures/:id` still returns `307` via the Proxy, confirming the route's auth gate is unchanged
-- [ ] **Deferred, same dependency as `ai-planner`'s live-verification gap:** confirming `gameState` against a real adventure's actual `game_states` row needs either an existing test adventure (none available — no DB/service-role access from this session, only the anon key) or creating a new one, which routes through the live-billed Adventure Planner call currently blocked by the same Anthropic usage limit (resets 2026-10-01). Not silently skipped — tracked here and in `tasks/plan-ai-encounter.md`.
+- [x] **2026-09-12, verified live** (account limit lifted early): created a real adventure via `POST /api/adventures`, then `GET /api/adventures/:id` returned `gameState: { currentQuestId: <first quest's real id>, inventory: [] }` matching the actual `game_states` row exactly, and correctly advanced to the next quest's id after each encounter's `COMPLETE_OBJECTIVE`.
 
 **Dependencies:** None
 

@@ -12,15 +12,15 @@ Per `ai-planner`'s precedent, this is the one task in the module that makes a re
 
 **Acceptance criteria:**
 - [x] `generateEncounter()`, `EncounterInput`, `EncounterError` implemented, same shape as `ai-planner`'s `generateAdventurePlan()`
-- [ ] `generateEncounter()` returns a valid `EncounterOutput` on a normal live call — **not yet proven, see Verification**
-- [ ] On an invalid first response, exactly one retry is attempted with the specific validation error(s) in the prompt — **not yet proven live** (implemented, mirrors `invalidLocationIds()`'s already-tested retry shape)
+- [x] `generateEncounter()` returns a valid `EncounterOutput` on a normal live call — **verified 2026-09-12**, see Verification
+- [ ] On an invalid first response, exactly one retry is attempted with the specific validation error(s) in the prompt — still not proven live (every live call so far returned valid actions on the first attempt; implemented, mirrors `invalidLocationIds()`'s already-tested retry shape)
 - [x] Throws `EncounterError` (with the invalid reasons in its message) if the retry is also invalid — implemented
-- [x] Prompt explicitly signals "this is the final quest" when applicable, per the Resolved Decisions
+- [x] Prompt explicitly signals "this is the final quest" when applicable, per the Resolved Decisions — **confirmed live**: the final-quest call correctly returned `choices: []` and a closing narration
 
 **Verification:**
 - [x] `pnpm build`/`lint`/`test` pass (73/73 — no new pure-logic tests here beyond what task 01 covers, mirrors `ai-planner` task 04's posture)
 - [x] Manual, live: one deliberate call attempted against `claude-haiku-4-5` with a realistic input via a temporary, uncommitted test file (removed after the run)
-- [ ] **Blocked by the same Anthropic account usage limit `ai-planner` hit:** the live call reached the API correctly (real request, real auth) and failed with `AI_APICallError: You have reached your specified API usage limits. You will regain access on 2026-10-01 at 00:00 UTC.` — a billing/account block, not a code bug. Per the plan, no retry-looping was attempted to work around it. **Live verification of this task and task 05's end-to-end flow is deferred to after 2026-10-01** — tracked here and in `tasks/plan-ai-encounter.md`'s Checkpoint B, not silently accepted.
+- [x] **2026-09-12, unblocked and verified** (the account usage limit lifted before the stated 2026-10-01 reset — re-checked with a minimal probe call before spending anything further). Four real `generateEncounter()` calls made end-to-end via `POST /api/adventures/:id/encounter` across two test adventures (2 and 3 quests): every call returned a valid `EncounterOutput` with a correct `COMPLETE_OBJECTIVE` `questId` on the first attempt (no retry path exercised), and the 3-quest adventure's last call correctly treated `isFinalQuest` — empty `choices`, a closing "mission accomplished" narration. See `ai-encounter`'s task 05 comment for the full session log and a real bug this exercise found (in `quest-gameplay`'s arrival route, not this file).
 
 **Dependencies:** 01
 

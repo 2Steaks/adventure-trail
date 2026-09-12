@@ -38,3 +38,7 @@ Also found and fixed while addressing the above: the embedded `game_states(curre
 - `src/lib/game/hooks.ts`
 
 **Estimated scope:** Medium
+
+## Comments
+
+**2026-09-12, superseded by `ai-encounter`:** this task's original acceptance criteria ("on `arrived: true`, updates `quests.status` and `adventures.status` to `'completed'`") was correct for the single-quest-per-adventure model in place when this shipped, but became a real bug once `ai-planner`/`ai-encounter` introduced multi-quest adventures. Found live: creating a 3-quest adventure and confirming arrival at quest 1 immediately flagged the *entire adventure* `completed` — before the wizard encounter ever ran and with two quests still `pending` — because this route unconditionally completed "the current quest" and "the adventure" on mere proximity. Per `SPEC-ai-encounter.md` ("Completing a quest's objective advances the adventure to its next quest; completing the last quest completes the adventure" — decided by `generateEncounter()`'s validated `COMPLETE_OBJECTIVE` action, never by arrival), this route should only ever report `{ distanceMeters, arrived }`. Fixed by deleting both completion writes from `arrival/route.ts`, leaving it a pure proximity check; `encounter/route.ts` (ai-encounter task 05) is now the sole writer of quest/adventure completion. Re-verified live end-to-end afterward: a fresh 3-quest adventure completed quest-by-quest correctly, with `adventures.status` staying `active` until the actual final quest's `COMPLETE_OBJECTIVE` landed.
