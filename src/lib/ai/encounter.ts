@@ -31,7 +31,9 @@ export type EncounterInput = {
 function buildPrompt(input: EncounterInput, correction?: string): string {
   const completedList =
     input.completedQuestObjectives.length > 0
-      ? input.completedQuestObjectives.map((objective) => `- ${objective}`).join("\n")
+      ? input.completedQuestObjectives
+          .map((objective) => `- ${objective}`)
+          .join("\n")
       : "(none yet)";
 
   const inventoryList =
@@ -79,7 +81,11 @@ export async function generateEncounter(
   input: EncounterInput,
 ): Promise<EncounterOutput> {
   const first = await requestEncounter(input);
-  const firstInvalid = validateEncounterActions(first.actions, input.currentQuestId);
+  const firstInvalid = validateEncounterActions(
+    first.actions,
+    input.currentQuestId,
+  );
+
   if (firstInvalid.length === 0) {
     return first;
   }
@@ -88,7 +94,11 @@ export async function generateEncounter(
     input,
     `Your previous response proposed invalid action(s): ${firstInvalid.join("; ")}. Only propose COMPLETE_OBJECTIVE for questId "${input.currentQuestId}", and always include a non-empty itemId on ADD_ITEM.`,
   );
-  const retryInvalid = validateEncounterActions(retry.actions, input.currentQuestId);
+  const retryInvalid = validateEncounterActions(
+    retry.actions,
+    input.currentQuestId,
+  );
+
   if (retryInvalid.length === 0) {
     return retry;
   }

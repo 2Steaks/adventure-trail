@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useAdventures } from "@/src/lib/adventures/hooks";
+import { useAdventures, useDeleteAdventure } from "@/src/lib/adventures/hooks";
 import { Button } from "@/src/components/ui/button";
 import { LogoutButton } from "@/src/components/auth/logout-button";
 import { LoadingState, ErrorState } from "@/src/components/ui/status";
 
 export default function Home() {
   const { data, isLoading, error, refetch } = useAdventures();
+  const deleteAdventure = useDeleteAdventure();
   const adventures = data?.adventures ?? [];
 
   return (
@@ -55,6 +56,9 @@ export default function Home() {
                   Resume
                 </Button>
               </Link>
+              <Button variant="outline" className="mt-3 w-full" onClick={() => deleteAdventure.mutate({ id: adventure.id })}>
+                  Delete
+              </Button>
             </li>
           ))}
         </ul>

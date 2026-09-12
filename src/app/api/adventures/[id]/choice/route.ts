@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/src/lib/supabase/require-user";
 import { choiceSchema } from "@/src/lib/schemas/choice";
+import { AdventureClient } from "@/src/lib/adventures/client";
+import { MessageClient } from "@/src/lib/messages/client";
 
 export async function POST(
   request: Request,
@@ -12,6 +14,8 @@ export async function POST(
   }
 
   const { id } = await params;
+  const adventureClient = new AdventureClient(supabase);
+  const messageClient = new MessageClient(supabase);
 
   let json: unknown;
   try {
@@ -25,12 +29,8 @@ export async function POST(
     return NextResponse.json({ error: "Invalid choice." }, { status: 400 });
   }
 
-  const { data: adventure, error: adventureError } = await supabase
-    .from("adventures")
-    .select("id")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: adventure, error: adventureError } =
+    await adventureClient.getById(id, user.id);
 
   if (adventureError) {
     return NextResponse.json(
@@ -43,8 +43,8 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const { error: messageError } = await supabase.from("messages").insert({
-    adventure_id: id,
+  const { error: messageError } = await messageClient.insert({
+    adventureId: id,
     role: "user",
     content: body.data.label,
   });

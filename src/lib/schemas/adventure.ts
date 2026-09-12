@@ -26,7 +26,8 @@ export const createAdventureFields = z.object({
 });
 
 export const ageRangeRefinement = {
-  check: (data: { ageMin: number; ageMax: number }) => data.ageMax >= data.ageMin,
+  check: (data: { ageMin: number; ageMax: number }) =>
+    data.ageMax >= data.ageMin,
   message: "Maximum age must be greater than or equal to minimum age.",
   path: ["ageMax"],
 };
@@ -36,4 +37,9 @@ export const createAdventureSchema = createAdventureFields.refine(
   ageRangeRefinement,
 );
 
+export const deleteAdventureSchema = z.object({
+  id: z.string(),
+});
+
 export type CreateAdventure = z.infer<typeof createAdventureSchema>;
+export type DeleteAdventure = z.infer<typeof deleteAdventureSchema>;

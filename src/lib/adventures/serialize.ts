@@ -1,18 +1,6 @@
-export type AdventureRow = {
-  id: string;
-  user_id: string;
-  title: string;
-  theme: string;
-  age_min: number;
-  age_max: number;
-  duration_minutes: number;
-  max_distance_meters: number;
-  starting_lat: number;
-  starting_lng: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-};
+import type { Database } from "@/src/types/database";
+
+export type AdventureRow = Database["public"]["Tables"]["adventures"]["Row"];
 
 export type SerializedAdventure = ReturnType<typeof serializeAdventure>;
 
@@ -21,20 +9,7 @@ export type AdventureSummary = SerializedAdventure & {
   questsCompleted: number;
 };
 
-export type QuestRow = {
-  id: string;
-  adventure_id: string;
-  position: number;
-  objective: string;
-  type: string;
-  landmark_name: string;
-  landmark_type: string;
-  latitude: number;
-  longitude: number;
-  radius_meters: number;
-  status: string;
-  created_at: string;
-};
+export type QuestRow = Database["public"]["Tables"]["quests"]["Row"];
 
 export function serializeAdventure(row: AdventureRow) {
   return {
@@ -56,11 +31,14 @@ export function serializeAdventure(row: AdventureRow) {
 
 export type SerializedQuest = ReturnType<typeof serializeQuest>;
 
-export type GameStateRow = {
-  adventure_id: string;
-  current_quest_id: string | null;
+// game_states also has a `state` column (unused by this app so far) and
+// `inventory` is a Json column in the DB — narrowed to string[] here since
+// that's the only shape this app ever writes into it.
+export type GameStateRow = Pick<
+  Database["public"]["Tables"]["game_states"]["Row"],
+  "adventure_id" | "current_quest_id" | "updated_at"
+> & {
   inventory: string[];
-  updated_at: string;
 };
 
 export type SerializedGameState = ReturnType<typeof serializeGameState>;

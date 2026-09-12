@@ -1,41 +1,41 @@
 import { NextResponse } from "next/server";
+import { AdventureClient } from "@/src/lib/adventures/client";
+import { serializeAdventure } from "@/src/lib/adventures/serialize";
+import {
+  AdventurePlanError,
+  generateAdventurePlan,
+} from "@/src/lib/ai/planner";
+import { GameStateClient } from "@/src/lib/game/client";
+import { QuestClient } from "@/src/lib/quests/client";
+import { serializeQuests } from "@/src/lib/quests/serialize";
+import {
+  createAdventureSchema,
+  deleteAdventureSchema,
+} from "@/src/lib/schemas/adventure";
 import { requireUser } from "@/src/lib/supabase/require-user";
-import { createAdventureSchema } from "@/src/lib/schemas/adventure";
 import {
-  fetchNearbyPlaces,
   NearbyPlacesFetchError,
-} from "@/src/lib/places/fetch-nearby-places";
-import { generateAdventurePlan, AdventurePlanError } from "@/src/lib/ai/planner";
-import {
-  serializeAdventure,
-  type AdventureRow,
-} from "@/src/lib/adventures/serialize";
-import { adventuresRepository } from "@/src/repositories/adventures/adventures";
-
-// Arrival radius isn't LLM-controlled — a fixed, reliable value the same way
-// every quest so far has used, independent of which landmark gets picked.
-const QUEST_RADIUS_METERS = 40;
+  overpassClient,
+} from "@/src/lib/places/client";
 
 export async function GET() {
   const { user, supabase } = await requireUser();
-  
+  const adventureClient = new AdventureClient(supabase);
+
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await adventuresRepository.getAdventuresByUserId(supabase, user.id)
+  const { data, error } = await adventureClient.getUserAdventures(user.id);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  const adventures = (
-    data as (AdventureRow & { quests: { status: string }[] })[]
-  ).map((row) => ({
+  const adventures = data.map((row) => ({
     ...serializeAdventure(row),
     questsTotal: row.quests.length,
-    questsCompleted: row.quests.filter((q) => q.status === "completed")
-      .length,
+    questsCompleted: row.quests.filter((q) => q.status === "completed").length,
   }));
 
   return NextResponse.json({ adventures });
@@ -43,6 +43,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const { user, supabase } = await requireUser();
+  const adventureClient = new AdventureClient(supabase);
+  const gameClient = new GameStateClient(supabase);
+  const questClient = new QuestClient(supabase);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -77,11 +80,11 @@ export async function POST(request: Request) {
   } = body.data;
 
   // Nothing is written to the database until a valid plan exists — a
-  // failure here (no candidates, or the planner never producing a valid
+  // failure here (no locations, or the planner never producing a valid
   // result) leaves zero rows behind, no rollback needed.
-  let candidates;
+  let locations;
   try {
-    candidates = await fetchNearbyPlaces({
+    locations = await overpassClient.findNearbyPlaces({
       lat: startingLat,
       lng: startingLng,
       radiusMeters: maxDistanceMeters,
@@ -93,7 +96,7 @@ export async function POST(request: Request) {
     throw error;
   }
 
-  if (candidates.length === 0) {
+  if (locations.length === 0) {
     return NextResponse.json(
       { error: "Couldn't find any landmarks near that location. Try again." },
       { status: 502 },
@@ -107,7 +110,7 @@ export async function POST(request: Request) {
       ageMin,
       ageMax,
       durationMinutes,
-      locations: candidates,
+      locations,
     });
   } catch (error) {
     // Any planner failure (invalid output after retry, or a raw AI SDK
@@ -116,6 +119,7 @@ export async function POST(request: Request) {
     // reaches the client as a bodyless, non-JSON 500 that fetchJson()
     // then misreports as an expired session.
     console.error("Adventure Planner call failed", error);
+
     if (error instanceof AdventurePlanError) {
       return NextResponse.json(
         { error: "Couldn't plan an adventure for that location. Try again." },
@@ -128,17 +132,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: adventure, error: adventureError } = await adventuresRepository.createAdventure(supabase, {
-    user_id: user.id,
-    title: plan.title,
-    theme,
-    age_min: ageMin,
-    age_max: ageMax,
-    duration_minutes: durationMinutes,
-    max_distance_meters: maxDistanceMeters,
-    starting_lat: startingLat,
-    starting_lng: startingLng,
-  })
+  const { data: adventure, error: adventureError } =
+    await adventureClient.createAdventure({
+      user_id: user.id,
+      title: plan.title,
+      theme,
+      age_min: ageMin,
+      age_max: ageMax,
+      duration_minutes: durationMinutes,
+      max_distance_meters: maxDistanceMeters,
+      starting_lat: startingLat,
+      starting_lng: startingLng,
+    });
 
   if (adventureError) {
     return NextResponse.json(
@@ -147,36 +152,17 @@ export async function POST(request: Request) {
     );
   }
 
-  const candidatesById = new Map(candidates.map((c) => [c.id, c]));
-
-  const { data: quests, error: questsError } = await supabase
-    .from("quests")
-    .insert(
-      plan.quests.map((quest, index) => {
-        const location = candidatesById.get(quest.locationId)!;
-        return {
-          adventure_id: adventure.id,
-          position: index + 1,
-          objective: quest.objective,
-          type: quest.type,
-          landmark_name: location.name,
-          landmark_type: location.type,
-          latitude: location.latitude,
-          longitude: location.longitude,
-          radius_meters: QUEST_RADIUS_METERS,
-        };
-      }),
-    )
-    .select()
-    .order("position", { ascending: true });
+  const { data: quests, error: questsError } = await questClient.createQuests(
+    serializeQuests(plan.quests, locations, adventure.id),
+  );
 
   if (questsError) {
     return NextResponse.json({ error: questsError.message }, { status: 400 });
   }
 
-  const { error: gameStateError } = await supabase.from("game_states").insert({
-    adventure_id: adventure.id,
-    current_quest_id: quests[0].id,
+  const { error: gameStateError } = await gameClient.create({
+    adventureId: adventure.id,
+    questId: quests[0].id,
   });
 
   if (gameStateError) {
@@ -188,6 +174,41 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     success: true,
-    adventure: serializeAdventure(adventure as AdventureRow),
+    adventure: serializeAdventure(adventure),
   });
+}
+
+export async function DELETE(request: Request) {
+  const { user, supabase } = await requireUser();
+  const adventureClient = new AdventureClient(supabase);
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let json: unknown;
+  try {
+    json = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid adventure details." },
+      { status: 400 },
+    );
+  }
+
+  const body = deleteAdventureSchema.safeParse(json);
+  if (!body.success) {
+    return NextResponse.json(
+      { error: "Invalid adventure details." },
+      { status: 400 },
+    );
+  }
+
+  const { error } = await adventureClient.remove(body.data.id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ success: true });
 }
