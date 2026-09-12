@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useAdventure } from "@/src/lib/adventures/hooks";
 import {
   useCheckArrival,
@@ -24,6 +24,9 @@ export default function AdventureDetailPage({
   const sendChoice = useSendChoice(id);
 
   const currentQuestId = data?.gameState.currentQuestId;
+  const currentQuest = data?.quests.find((quest) => quest.id === currentQuestId);
+  const arrived =
+    checkArrival.data?.arrived ?? currentQuest?.status === "completed";
 
   // The current quest advances server-side (via useEncounter's query
   // invalidation) as soon as an encounter completes an objective — reset
@@ -33,6 +36,20 @@ export default function AdventureDetailPage({
     checkArrival.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQuestId]);
+
+  // Celebrate only the *transition* into arrived — not an already-arrived
+  // quest freshly loaded from the server (e.g. a page reload after arriving).
+  const [showCelebration, setShowCelebration] = useState(false);
+  const wasArrivedRef = useRef(arrived);
+  useEffect(() => {
+    const wasArrived = wasArrivedRef.current;
+    wasArrivedRef.current = arrived;
+    if (arrived && !wasArrived) {
+      setShowCelebration(true);
+      const timeout = setTimeout(() => setShowCelebration(false), 1600);
+      return () => clearTimeout(timeout);
+    }
+  }, [arrived]);
 
   if (isLoading) {
     return (
@@ -54,10 +71,6 @@ export default function AdventureDetailPage({
       </main>
     );
   }
-
-  const currentQuest = data.quests.find((quest) => quest.id === currentQuestId);
-  const arrived =
-    checkArrival.data?.arrived ?? currentQuest?.status === "completed";
 
   let wizardState: WizardState = "idle";
   if (encounter.isPending) {
@@ -98,14 +111,29 @@ export default function AdventureDetailPage({
           <Wizard state={wizardState} />
         </div>
 
+        {showCelebration && (
+          <p
+            role="status"
+            className="mt-2 text-center text-sm font-black uppercase text-primary motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in"
+          >
+            You made it!
+          </p>
+        )}
+
         {adventureFinished ? (
-          <p className="mt-4 text-center text-lg font-black uppercase text-primary">
+          <p
+            key="finished"
+            className="mt-4 text-center text-lg font-black uppercase text-primary motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+          >
             Adventure Complete!
           </p>
         ) : (
           <>
             {currentQuest && (
-              <div className="mt-4 border-2 border-foreground bg-background p-4">
+              <div
+                key={currentQuest.id}
+                className="mt-4 border-2 border-foreground bg-background p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+              >
                 <p className="text-sm font-bold uppercase">
                   {currentQuest.landmarkName}
                 </p>
