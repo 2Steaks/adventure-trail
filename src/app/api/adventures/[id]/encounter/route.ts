@@ -118,10 +118,18 @@ export async function POST(
       isFinalQuest: nextQuest === null,
     });
   } catch (error) {
+    // Same posture as the Adventure Planner route: any encounter-call
+    // failure (invalid actions after retry, or a raw AI SDK error) must
+    // surface as JSON, never an unhandled crash that fetchJson()
+    // misreports as an expired session.
+    console.error("Encounter Generator call failed", error);
     if (error instanceof EncounterError) {
       return NextResponse.json({ error: error.message }, { status: 502 });
     }
-    throw error;
+    return NextResponse.json(
+      { error: "The wizard is unavailable right now. Try again." },
+      { status: 502 },
+    );
   }
 
   // Accumulated locally and written once per ADD_ITEM action, starting
