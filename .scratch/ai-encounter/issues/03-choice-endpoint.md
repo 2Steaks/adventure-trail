@@ -19,7 +19,7 @@ Add `useSendChoice(adventureId)` (`src/lib/game/hooks.ts`, `useMutation` + `fetc
 - [x] `pnpm test` passes (`choiceSchema` validation test, 73/73 total)
 - [x] `pnpm build`/`lint` pass
 - [x] Manual: unauthenticated request → `307`, confirmed live
-- [ ] **Deferred, same dependency as tasks 02/04-05:** `404` for another user's adventure and a real `messages` insert both need an existing adventure — none available this session without a live-billed Adventure Planner call, currently blocked by `ai-planner`'s usage limit (resets 2026-10-01). Not silently skipped — tracked here.
+- [x] **2026-09-12, verified live** (account limit lifted early): a second test user's `curl` against the first user's real adventure id got `404`; the first (owning) user's `POST .../choice` with `{"label":"I see a friendly alien!"}` returned `200` and inserted a real `messages` row (`role: "user"`, matching `content`), confirmed via a direct PostgREST read.
 
 **Dependencies:** None
 

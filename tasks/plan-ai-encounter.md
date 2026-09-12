@@ -22,28 +22,28 @@ Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 
 ### Phase: Free, pure primitives (zero API cost)
 - [x] [01 - encounterOutputSchema + validateEncounterActions() (TDD)](.scratch/ai-encounter/issues/01-encounter-schema-and-validation.md)
-- [x] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md) — implemented; live confirmation of the actual `gameState` payload deferred, see ticket
-- [x] [03 - POST /api/adventures/:id/choice (flavor-only message, no LLM)](.scratch/ai-encounter/issues/03-choice-endpoint.md) — implemented; live confirmation against a real adventure deferred, see ticket
+- [x] [02 - Extend GET /api/adventures/:id with game_states (fix current-quest gap)](.scratch/ai-encounter/issues/02-extend-adventure-detail-with-game-state.md) — implemented; live-verified 2026-09-12
+- [x] [03 - POST /api/adventures/:id/choice (flavor-only message, no LLM)](.scratch/ai-encounter/issues/03-choice-endpoint.md) — implemented; live-verified 2026-09-12
 
 ### Checkpoint A — after 01-03
 - [x] `pnpm test` passes (73/73) — all new schema/validation tests, `persistence`/`quest-gameplay`'s existing tests still green after the `GET` extension
 - [x] No live Anthropic calls made yet; nothing billed so far
-- [ ] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row — **deferred**: no existing test adventure and no DB/service-role access this session; creating one requires the same live-billed Adventure Planner call blocked by `ai-planner`'s usage limit (resets 2026-10-01). Unauthenticated-request behavior (`307`) was confirmed live instead.
+- [x] Manual: `GET /api/adventures/:id` now returns `gameState.currentQuestId`/`gameState.inventory` for an existing adventure, confirmed against a real row — **verified live 2026-09-12**, see Checkpoint B
 
 ### Phase: First live integration
-- [x] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md) — implemented; live verification deferred, see below
+- [x] [04 - Wire generateEncounter() against a real Anthropic call](.scratch/ai-encounter/issues/04-wire-generate-encounter.md) — implemented; live-verified 2026-09-12
 
 ### Checkpoint B — after 04
-- [ ] `generateEncounter()` proven against at least one real, live call — **confirmed deferred**: the one attempt made hit the same Anthropic account usage limit `ai-planner` hit (`AI_APICallError`, resets 2026-10-01 at 00:00 UTC) — a billing/account block, not a code bug. Live verification of task 04 and task 05's end-to-end flow moves to after that date; implementation of task 05 proceeds on typecheck/lint/unit-test/code-review confidence alone, same as `ai-planner`. **Re-verify live before treating this module as done.**
-- [x] Live-call count for this checkpoint stayed small and deliberate (one attempt, no retry-looping to work around the limit)
+- [x] `generateEncounter()` proven against at least one real, live call — **verified 2026-09-12**: the Anthropic account's usage limit lifted before its stated 2026-10-01 reset (re-checked with a minimal probe call, not assumed). Four real `claude-haiku-4-5` calls made via `POST /api/adventures/:id/encounter` across two test adventures (2 and 3 real, AI-planned quests each), every one returning a valid `EncounterOutput` with a correctly-scoped `COMPLETE_OBJECTIVE`, including correct `isFinalQuest` handling (empty `choices`, closing narration) on the true last quest. Retry path still unexercised (no live response has failed validation yet).
+- [x] Live-call count for this checkpoint stayed small and deliberate (one full adventure run each, no retry-looping)
 
 ### Phase: Vertical slice
-- [x] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md) — implemented; live confirmation deferred, see ticket
+- [x] [05 - Real AI-narrated encounter (vertical slice)](.scratch/ai-encounter/issues/05-encounter-vertical-slice.md) — implemented; live-verified 2026-09-12, see ticket
 
 ### Checkpoint C — AI Encounter complete
-- [ ] Every `SPEC-ai-encounter.md` Success Criteria box checked — **not yet: the live-dependent boxes (wrong-owner `404`, no-current-quest `409` live, full encounter flow) are deferred, see Checkpoint B**
+- [x] Every `SPEC-ai-encounter.md` Success Criteria box checked — **done 2026-09-12**: wrong-owner `404`, no-current-quest `409`, and the full encounter flow (arrive → talk to Wizard → AI message + choices → objective completed → quest/adventure advancement) all confirmed live; `ADD_ITEM` and the `EncounterError`/`502` path remain implemented-but-live-unexercised (no live response happened to trigger either)
 - [x] Failure paths not needing a live LLM call (unauthenticated on `arrival`/`choice`/`encounter`) confirmed live
-- [ ] Manual pass: one real end-to-end encounter (arrive → talk to Wizard → AI message + choices → objective completed → next quest, or adventure completed on the last quest) — **deferred, same dependency as Checkpoint B**
+- [x] Manual pass: one real end-to-end encounter (arrive → talk to Wizard → AI message + choices → objective completed → next quest, or adventure completed on the last quest) — **done 2026-09-12**: ran the full 3-quest loop, ending with correct adventure completion only on the true final quest — see task 05's comment for the real bug this pass found and fixed in `quest-gameplay`'s arrival route
 - [x] `pnpm build`/`lint`/`test` all pass (73/73 tests; production build compiles)
 - [ ] CI green on the PR — pending, will confirm once pushed
 - [ ] Human reviews and merges — **outstanding**
@@ -52,7 +52,7 @@ Tracker items: `.scratch/ai-encounter/issues/01`–`05`.
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Same Anthropic account usage limit that blocked `ai-planner`'s live verification (resets 2026-10-01) is likely still in effect | Med | Free/pure logic and all non-LLM routes built and tested first (tasks 01–03); if task 04 hits the same limit, defer live verification explicitly (Checkpoint B) rather than stalling the module, exactly as `ai-planner` did |
+| Same Anthropic account usage limit that blocked `ai-planner`'s live verification — **resolved 2026-09-12**, the limit lifted before its stated 2026-10-01 reset; all live-dependent checkpoints above are now closed | Med → Closed | Free/pure logic and all non-LLM routes were built and tested first (tasks 01–03), so once the limit lifted, live verification (Checkpoint B) was a single deliberate pass rather than a scramble |
 | `game_states.inventory`'s application-code read-modify-write has a race window under concurrent requests | Low | Accepted per `SPEC-ai-encounter.md`'s Resolved Decisions — single player per adventure, no concurrent-tab story anywhere else in the codebase; revisit only if actually hit |
 | Advancing `game_states.current_quest_id` picks the wrong "next" quest if two quests share a `position` | Low | `quests.position` is assigned sequentially by `ai-planner`'s insert (task 05 of that module) — no known path produces duplicates; "next pending quest by position" is unambiguous given that invariant |
 | Detail page's existing `quests[0]` current-quest guess (a latent bug predating this module) silently breaks something else that assumed it | Low | Task 02 fixes it before task 05 builds on it; `quest-gameplay`'s arrival route already resolves the current quest independently via `game_states.current_quest_id`, so it's unaffected either way |
