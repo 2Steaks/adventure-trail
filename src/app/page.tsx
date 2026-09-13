@@ -51,11 +51,13 @@ export default function Home() {
                 {adventure.status} &middot; {adventure.questsCompleted}/
                 {adventure.questsTotal} quests complete
               </p>
-              <Link href={`/adventures/${adventure.id}`}>
-                <Button variant="outline" className="mt-3 w-full">
-                  Resume
-                </Button>
-              </Link>
+              {adventure.status !== "completed" && (
+                <Link href={`/adventures/${adventure.id}`}>
+                  <Button variant="outline" className="mt-3 w-full">
+                    Resume
+                  </Button>
+                </Link>
+              )}
               <Button variant="outline" className="mt-3 w-full" onClick={() => deleteAdventure.mutate({ id: adventure.id })}>
                   Delete
               </Button>

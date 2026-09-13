@@ -132,6 +132,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          quest_id: string | null
           role: string
         }
         Insert: {
@@ -139,6 +140,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          quest_id?: string | null
           role: string
         }
         Update: {
@@ -146,6 +148,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          quest_id?: string | null
           role?: string
         }
         Relationships: [
@@ -154,6 +157,13 @@ export type Database = {
             columns: ["adventure_id"]
             isOneToOne: false
             referencedRelation: "adventures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
             referencedColumns: ["id"]
           },
         ]

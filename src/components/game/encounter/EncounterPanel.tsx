@@ -23,6 +23,7 @@ export function EncounterPanel({
               key={choice.id}
               variant="outline"
               disabled={disabled}
+              className="h-auto min-h-11 whitespace-normal py-2 text-center"
               onClick={() => onChoose(choice.label)}
             >
               {choice.label}

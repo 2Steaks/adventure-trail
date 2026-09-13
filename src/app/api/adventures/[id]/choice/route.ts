@@ -30,7 +30,7 @@ export async function POST(
   }
 
   const { data: adventure, error: adventureError } =
-    await adventureClient.getById(id, user.id);
+    await adventureClient.getWithGameState(id, user.id);
 
   if (adventureError) {
     return NextResponse.json(
@@ -43,8 +43,18 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const currentQuestId = adventure.game_states?.current_quest_id ?? null;
+
+  if (!currentQuestId) {
+    return NextResponse.json(
+      { error: "This adventure has no active quest." },
+      { status: 409 },
+    );
+  }
+
   const { error: messageError } = await messageClient.insert({
     adventureId: id,
+    questId: currentQuestId,
     role: "user",
     content: body.data.label,
   });

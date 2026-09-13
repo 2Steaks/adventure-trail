@@ -5,6 +5,7 @@ import {
   AdventurePlan,
   adventurePlanSchema,
 } from "../adventures/adventure-plan.schema";
+import { dedent } from "@/src/utils/format";
 
 export class AdventurePlanError extends Error {}
 
@@ -16,16 +17,6 @@ export type PlannerInput = {
   locations: Place[];
 };
 
-export function invalidLocationIds(
-  plan: AdventurePlan,
-  locations: Place[],
-): string[] {
-  const validIds = new Set(locations.map((location) => location.id));
-  return plan.quests
-    .map((quest) => quest.locationId)
-    .filter((locationId) => !validIds.has(locationId));
-}
-
 function buildPrompt(input: PlannerInput, correction?: string): string {
   const locationList = input.locations
     .map(
@@ -34,16 +25,19 @@ function buildPrompt(input: PlannerInput, correction?: string): string {
     )
     .join("\n");
 
-  return `You are a Dungeon Master planning a short, real-world walking adventure for a child.
+  return dedent`
+    You are a Dungeon Master planning a short, real-world walking adventure for a child.
 
-Theme: ${input.theme}
-Player age range: ${input.ageMin}-${input.ageMax}
-Adventure duration: about ${input.durationMinutes} minutes
+    Theme: ${input.theme}
+    Player age range: ${input.ageMin}-${input.ageMax}
+    Adventure duration: about ${input.durationMinutes} minutes
 
-Here are the only real-world landmarks the player can visit. You may ONLY reference these by their exact "id" value — never invent a location or use an id not in this list:
-${locationList}
+    Here are the only real-world landmarks the player can visit. You may ONLY reference these by their exact "id" value — never invent a location or use an id not in this list:
+    ${locationList}
 
-Write a short adventure title and a sequence of quests (roughly one quest every 20-30 minutes of the total duration, at least one). Each quest must reference exactly one of the supplied landmark ids as its locationId, have a short kid-friendly objective, and a type of "riddle", "exploration", or "discovery".${correction ? `\n\n${correction}` : ""}`;
+    Write a short adventure title and a sequence of quests (roughly one quest every 20-30 minutes of the total duration, at least one). Each quest must reference exactly one of the supplied landmark ids as its locationId, have a short kid-friendly objective, and a type of "riddle", "exploration", or "discovery".
+    ${correction ? `\n\n${correction}` : ""}
+  `;
 }
 
 async function requestPlan(
@@ -57,6 +51,16 @@ async function requestPlan(
   });
 
   return output;
+}
+
+export function invalidLocationIds(
+  plan: AdventurePlan,
+  locations: Place[],
+): string[] {
+  const validIds = new Set(locations.map((location) => location.id));
+  return plan.quests
+    .map((quest) => quest.locationId)
+    .filter((locationId) => !validIds.has(locationId));
 }
 
 export async function generateAdventurePlan(

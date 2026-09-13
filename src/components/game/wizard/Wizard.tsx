@@ -22,7 +22,7 @@ export function Wizard({ state }: { state: WizardState }) {
     <div
       role="img"
       aria-label={`Wizard: ${state}`}
-      className="relative h-24 w-24 overflow-hidden border-4 border-foreground bg-background"
+      className="relative h-24 w-24 overflow-hidden bg-background"
     >
       <Image
         src={WIZARD_IMAGE_SRC[state]}
