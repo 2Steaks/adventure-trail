@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/src/lib/supabase/require-user";
-import { arrivalCheckSchema } from "@/src/lib/schemas/arrival";
-import { checkArrival } from "@/src/lib/game/arrival";
-import { AdventureClient } from "@/src/lib/adventures/client";
-import { QuestClient } from "@/src/lib/quests/client";
+import { requireUser } from "@/src/services/supabase/utils/require-user";
+import { arrivalCheckSchema } from "@/src/features/game/arrival.schema";
+import { checkArrival } from "@/src/features/game/arrival";
+import { AdventureClient } from "@/src/features/adventures/client";
+import { QuestClient } from "@/src/features/quests/client";
 
 export async function POST(
   request: Request,
@@ -61,7 +61,7 @@ export async function POST(
   if (questError) {
     return NextResponse.json({ error: questError.message }, { status: 400 });
   }
-  
+
   if (!quest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

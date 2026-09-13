@@ -1,6 +1,6 @@
 "use client";
 
-import { useNearbyPlaces } from "@/src/lib/places/hooks";
+import { useNearbyPlaces } from "@/src/features/places/hooks";
 import { Button } from "@/src/components/ui/button";
 
 export default function NearbyPlacesPage() {

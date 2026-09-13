@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { geistSans, geistMono } from "@/src/lib/fonts";
-import { QueryProvider } from "@/src/lib/query/provider";
+import { geistSans, geistMono } from "@/src/utils/fonts";
+import { QueryProvider } from "@/src/components/query/provider";
 import "./globals.css";
 
 export const metadata: Metadata = {

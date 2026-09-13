@@ -1,60 +1,48 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
-import { useAdventure } from "@/src/lib/adventures/hooks";
+import { use, useEffect } from "react";
+import { Button } from "@/src/components/ui/button";
+import { Wizard } from "@/src/components/game/wizard/Wizard";
+import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
+import { LoadingState, ErrorState } from "@/src/components/ui/status";
+import {
+  useAdventure,
+  useShowCelebration,
+} from "@/src/features/adventures/hooks";
 import {
   useCheckArrival,
   useEncounter,
   useSendChoice,
-} from "@/src/lib/game/hooks";
-import { Button } from "@/src/components/ui/button";
-import { Wizard, type WizardState } from "@/src/components/game/wizard/Wizard";
-import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
-import { LoadingState, ErrorState } from "@/src/components/ui/status";
+} from "@/src/features/game/hooks";
+import {
+  getCurrentQuest,
+  getMapUrl,
+  getWizardState,
+} from "@/src/features/adventures/utils";
+
+interface AdventureDetailPageProps {
+  params: Promise<{ id: string }>;
+}
 
 export default function AdventureDetailPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: AdventureDetailPageProps) {
   const { id } = use(params);
   const { data, isLoading, error, refetch } = useAdventure(id);
   const checkArrival = useCheckArrival(id);
   const encounter = useEncounter(id);
   const sendChoice = useSendChoice(id);
 
-  const currentQuestId = data?.gameState.currentQuestId;
-  const currentQuest = data?.quests.find((quest) => quest.id === currentQuestId);
+  const currentQuest = getCurrentQuest(data);
   const arrived =
     checkArrival.data?.arrived ?? currentQuest?.status === "completed";
 
-  // The current quest advances server-side (via useEncounter's query
-  // invalidation) as soon as an encounter completes an objective — reset
-  // the *previous* quest's distance-check result so "arrived" doesn't
-  // stay stuck true for the next, different landmark.
   useEffect(() => {
     checkArrival.reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentQuestId]);
+  }, [currentQuest?.id]);
 
-  // Celebrate only the *transition* into arrived, not an already-arrived
-  // quest. `checkArrival`'s mutation state isn't persisted, so a reload
-  // always starts `arrived` at false (or true only via the `status ===
-  // "completed"` fallback, which can't happen for the *current* quest —
-  // completing a quest always advances current_quest_id in the same
-  // transaction) — either way, wasArrivedRef starts fresh each mount, so
-  // this can never re-fire for a quest arrived at before the reload.
-  const [showCelebration, setShowCelebration] = useState(false);
-  const wasArrivedRef = useRef(arrived);
-  useEffect(() => {
-    const wasArrived = wasArrivedRef.current;
-    wasArrivedRef.current = arrived;
-    if (arrived && !wasArrived) {
-      setShowCelebration(true);
-      const timeout = setTimeout(() => setShowCelebration(false), 1600);
-      return () => clearTimeout(timeout);
-    }
-  }, [arrived]);
+  const showCelebration = useShowCelebration(arrived);
 
   if (isLoading) {
     return (
@@ -65,10 +53,8 @@ export default function AdventureDetailPage({
   }
 
   if (error || !data) {
-    // "Not found" is a hard failure (the API's literal message for a 404) —
-    // retrying the same request can't fix a missing/not-yours adventure,
-    // unlike a transient network/server error.
     const isNotFound = error?.message === "Not found";
+
     return (
       <main className="flex w-full flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
@@ -81,29 +67,8 @@ export default function AdventureDetailPage({
     );
   }
 
-  let wizardState: WizardState = "idle";
-  if (encounter.isPending) {
-    wizardState = "thinking";
-  } else if (encounter.isError) {
-    wizardState = "unexpected-event";
-  } else if (encounter.data) {
-    wizardState = encounter.data.actions.some(
-      (action) => action.type === "COMPLETE_OBJECTIVE",
-    )
-      ? "quest-completed"
-      : "waiting";
-  } else if (arrived) {
-    wizardState = "quest-available";
-  }
-
-  const mapsUrl = currentQuest
-    ? `https://www.google.com/maps/dir/?api=1&destination=${currentQuest.latitude},${currentQuest.longitude}`
-    : undefined;
-
-  // An unread encounter result (including the adventure's final "The End"
-  // message) stays visible even after the server-side quest position has
-  // already advanced past it — only dismissing it (a choice tap or
-  // Continue) can reveal "Adventure Complete!" or the next quest's card.
+  const wizardState = getWizardState(encounter, arrived);
+  const mapsUrl = getMapUrl(currentQuest);
   const adventureFinished = !currentQuest && !encounter.data;
 
   return (

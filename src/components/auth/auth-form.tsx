@@ -4,11 +4,8 @@ import type { ReactNode } from "react";
 import type { UseMutationResult } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  authCredentialsSchema,
-  type AuthCredentials,
-} from "@/src/lib/schemas/auth";
 import { Button } from "@/src/components/ui/button";
+import { AuthCredentials, authCredentialsSchema } from "@/src/features/auth/schema";
 
 export function AuthForm({
   title,

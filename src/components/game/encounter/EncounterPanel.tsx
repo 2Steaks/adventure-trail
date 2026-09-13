@@ -1,5 +1,5 @@
 import { Button } from "@/src/components/ui/button";
-import type { EncounterOutput } from "@/src/lib/schemas/encounter";
+import { EncounterOutput } from "@/src/features/game/encounter.schema";
 
 export function EncounterPanel({
   output,

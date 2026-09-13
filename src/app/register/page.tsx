@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRegister } from "@/src/lib/auth/hooks";
+import { useRegister } from "@/src/features/auth/hooks";
 import { AuthForm } from "@/src/components/auth/auth-form";
 
 export default function RegisterPage() {

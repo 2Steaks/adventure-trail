@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateAdventure } from "@/src/lib/adventures/hooks";
-import { getCurrentPosition } from "@/src/lib/geo/geolocation";
+import { useCreateAdventure } from "@/src/features/adventures/hooks";
+import { getCurrentPosition } from "@/src/utils/geo/geolocation";
 import {
-  createAdventureFields,
   ageRangeRefinement,
-  type CreateAdventure,
-} from "@/src/lib/schemas/adventure";
+  createAdventureFields,
+  CreateAdventure
+} from "@/src/features/adventures/schema";
 import { Button } from "@/src/components/ui/button";
 import { ErrorState } from "@/src/components/ui/status";
 

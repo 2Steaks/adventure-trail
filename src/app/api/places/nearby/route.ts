@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/src/lib/supabase/require-user";
-import { nearbyPlacesQuerySchema } from "@/src/lib/schemas/places";
+import { requireUser } from "@/src/services/supabase/utils/require-user";
+import { nearbyPlacesQuerySchema } from "@/src/features/places/places.schema";
 import {
   NearbyPlacesFetchError,
   overpassClient,
-} from "@/src/lib/places/client";
+} from "@/src/services/overpass/overpass.client";
 
 export async function GET(request: Request) {
   const { user } = await requireUser();

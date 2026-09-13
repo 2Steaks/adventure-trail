@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/src/lib/supabase/client";
-import { authCredentialsSchema } from "@/src/lib/schemas/auth";
+import { createClient } from "@/src/services/supabase/supabase.client";
+import { authCredentialsSchema } from "@/src/features/auth/schema";
 
 export async function POST(request: Request) {
   let json: unknown;
