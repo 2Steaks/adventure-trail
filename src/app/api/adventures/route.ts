@@ -1,22 +1,23 @@
 import { NextResponse } from "next/server";
-import { AdventureClient } from "@/src/lib/adventures/client";
-import { serializeAdventure } from "@/src/lib/adventures/serialize";
+import { AdventureClient } from "@/src/features/adventures/client";
+import { serializeAdventure } from "@/src/features/adventures/serialize";
 import {
   AdventurePlanError,
   generateAdventurePlan,
-} from "@/src/lib/ai/planner";
-import { GameStateClient } from "@/src/lib/game/client";
-import { QuestClient } from "@/src/lib/quests/client";
-import { serializeQuests } from "@/src/lib/quests/serialize";
-import {
-  createAdventureSchema,
-  deleteAdventureSchema,
-} from "@/src/lib/schemas/adventure";
-import { requireUser } from "@/src/lib/supabase/require-user";
+} from "@/src/features/game/planner";
+import { GameStateClient } from "@/src/features/game/client";
+import { QuestClient } from "@/src/features/quests/client";
+import { serializeQuests } from "@/src/features/quests/serialize";
+
+import { requireUser } from "@/src/services/supabase/utils/require-user";
 import {
   NearbyPlacesFetchError,
   overpassClient,
-} from "@/src/lib/places/client";
+} from "@/src/services/overpass/overpass.client";
+import {
+  createAdventureSchema,
+  deleteAdventureSchema,
+} from "@/src/features/adventures/schema";
 
 export async function GET() {
   const { user, supabase } = await requireUser();

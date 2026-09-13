@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/src/lib/supabase/require-user";
-import { choiceSchema } from "@/src/lib/schemas/choice";
-import { AdventureClient } from "@/src/lib/adventures/client";
-import { MessageClient } from "@/src/lib/messages/client";
+import { requireUser } from "@/src/services/supabase/utils/require-user";
+import { choiceSchema } from "@/src/features/game/choice";
+import { AdventureClient } from "@/src/features/adventures/client";
+import { MessageClient } from "@/src/features/messages/client";
 
 export async function POST(
   request: Request,

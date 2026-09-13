@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/src/lib/supabase/require-user";
+import { requireUser } from "@/src/services/supabase/utils/require-user";
+import { generateEncounter } from "@/src/features/game/encounter";
+import { AdventureClient } from "@/src/features/adventures/client";
+import { QuestClient } from "@/src/features/quests/client";
+import { GameStateClient } from "@/src/features/game/client";
+import { MessageClient } from "@/src/features/messages/client";
 import {
-  generateEncounter,
   EncounterError,
-  type EncounterMessage,
-} from "@/src/lib/ai/encounter";
-import { AdventureClient } from "@/src/lib/adventures/client";
-import { QuestClient } from "@/src/lib/quests/client";
-import { GameStateClient } from "@/src/lib/game/client";
-import { MessageClient } from "@/src/lib/messages/client";
+  EncounterMessage,
+} from "@/src/features/game/encounter.types";
 
 export async function POST(
   _request: Request,

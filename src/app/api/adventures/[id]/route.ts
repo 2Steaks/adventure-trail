@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/src/lib/supabase/require-user";
-import { AdventureClient } from "@/src/lib/adventures/client";
-import { QuestClient } from "@/src/lib/quests/client";
-import { GameStateClient } from "@/src/lib/game/client";
+import { requireUser } from "@/src/services/supabase/utils/require-user";
+import { AdventureClient } from "@/src/features/adventures/client";
+import { QuestClient } from "@/src/features/quests/client";
+import { GameStateClient } from "@/src/features/game/client";
 import {
   serializeAdventure,
   serializeGameState,
   serializeQuest,
-} from "@/src/lib/adventures/serialize";
+} from "@/src/features/adventures/serialize";
 
 export async function GET(
   _request: Request,

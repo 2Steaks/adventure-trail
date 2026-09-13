@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAdventures, useDeleteAdventure } from "@/src/lib/adventures/hooks";
+import { useAdventures, useDeleteAdventure } from "@/src/features/adventures/hooks";
 import { Button } from "@/src/components/ui/button";
 import { LogoutButton } from "@/src/components/auth/logout-button";
 import { LoadingState, ErrorState } from "@/src/components/ui/status";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useLogin } from "@/src/lib/auth/hooks";
+import { useLogin } from "@/src/features/auth/hooks";
 import { AuthForm } from "@/src/components/auth/auth-form";
 
 export default function LoginPage() {

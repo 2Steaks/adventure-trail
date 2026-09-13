@@ -1,16 +1,13 @@
 "use client";
 
 import { use, useEffect, useRef, useState } from "react";
-import { useAdventure } from "@/src/lib/adventures/hooks";
-import {
-  useCheckArrival,
-  useEncounter,
-  useSendChoice,
-} from "@/src/lib/game/hooks";
+
 import { Button } from "@/src/components/ui/button";
 import { Wizard, type WizardState } from "@/src/components/game/wizard/Wizard";
 import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
 import { LoadingState, ErrorState } from "@/src/components/ui/status";
+import { useAdventure } from "@/src/features/adventures/hooks";
+import { useCheckArrival, useEncounter, useSendChoice } from "@/src/features/game/hooks";
 
 export default function AdventureDetailPage({
   params,
@@ -45,10 +42,14 @@ export default function AdventureDetailPage({
   // transaction) — either way, wasArrivedRef starts fresh each mount, so
   // this can never re-fire for a quest arrived at before the reload.
   const [showCelebration, setShowCelebration] = useState(false);
+
+  // TODO 
   const wasArrivedRef = useRef(arrived);
+
   useEffect(() => {
     const wasArrived = wasArrivedRef.current;
     wasArrivedRef.current = arrived;
+
     if (arrived && !wasArrived) {
       setShowCelebration(true);
       const timeout = setTimeout(() => setShowCelebration(false), 1600);
@@ -81,6 +82,7 @@ export default function AdventureDetailPage({
     );
   }
 
+  // TODO 
   let wizardState: WizardState = "idle";
   if (encounter.isPending) {
     wizardState = "thinking";
@@ -96,6 +98,7 @@ export default function AdventureDetailPage({
     wizardState = "quest-available";
   }
 
+  // TODO 
   const mapsUrl = currentQuest
     ? `https://www.google.com/maps/dir/?api=1&destination=${currentQuest.latitude},${currentQuest.longitude}`
     : undefined;

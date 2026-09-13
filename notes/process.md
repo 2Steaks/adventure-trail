@@ -19,3 +19,4 @@ What I did:
 - instructed AI to move Supabase queries to dedicated clients
 - refactored Overpass into a client
 - refactored Overpass query to a function with better formatting
+- move tailwind classes to objects (WIP)

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useLogout } from "@/src/lib/auth/hooks";
+import { useLogout } from "@/src/features/auth/hooks";
 import { Button } from "@/src/components/ui/button";
 
 export function LogoutButton() {
