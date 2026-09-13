@@ -10,6 +10,9 @@ import {
   EncounterMessage,
 } from "@/src/features/game/encounter.types";
 
+/**
+ * TODO Clean up this verbose function
+ */
 export async function POST(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },

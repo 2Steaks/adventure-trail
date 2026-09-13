@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTimeout } from "usehooks-ts";
 import type {
   CreateAdventure,
   DeleteAdventure,
@@ -66,3 +68,21 @@ export function useDeleteAdventure() {
     },
   });
 }
+
+export const useShowCelebration = (arrived: boolean) => {
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  const wasArrived = useRef(arrived);
+
+  useEffect(() => {
+    if (arrived && !wasArrived.current) {
+      setShowCelebration(true);
+    }
+
+    wasArrived.current = arrived;
+  }, [arrived]);
+
+  useTimeout(() => setShowCelebration(false), 1600);
+
+  return showCelebration;
+};

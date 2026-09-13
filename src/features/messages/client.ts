@@ -1,5 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/src/services/supabase/supabase.database";
+import { DatabaseClient } from "@/src/services/supabase/supabase.types";
 
 interface InsertParams {
   adventureId: string;
@@ -8,7 +7,7 @@ interface InsertParams {
 }
 
 export class MessageClient {
-  constructor(private db: SupabaseClient<Database>) {}
+  constructor(private db: DatabaseClient) {}
 
   async insert({ adventureId, role, content }: InsertParams) {
     return this.db.from("messages").insert({

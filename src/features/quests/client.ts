@@ -1,10 +1,10 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/src/services/supabase/supabase.database";
+import { DatabaseClient } from "@/src/services/supabase/supabase.types";
 
 type QuestInsert = Database["public"]["Tables"]["quests"]["Insert"];
 
 export class QuestClient {
-  constructor(private db: SupabaseClient<Database>) {}
+  constructor(private db: DatabaseClient) {}
 
   async getQuest(questId: string) {
     return this.db.from("quests").select("*").eq("id", questId).maybeSingle();

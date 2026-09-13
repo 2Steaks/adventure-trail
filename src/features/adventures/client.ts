@@ -1,10 +1,10 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/src/services/supabase/supabase.database";
+import { DatabaseClient } from "@/src/services/supabase/supabase.types";
 
 type AdventureInsert = Database["public"]["Tables"]["adventures"]["Insert"];
 
 export class AdventureClient {
-  constructor(private db: SupabaseClient<Database>) {}
+  constructor(private db: DatabaseClient) {}
 
   async createAdventure(payload: AdventureInsert) {
     return this.db.from("adventures").insert(payload).select().single();

@@ -1,5 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/src/services/supabase/supabase.database";
+import { DatabaseClient } from "@/src/services/supabase/supabase.types";
 
 interface CreateParams {
   adventureId: string;
@@ -7,7 +6,7 @@ interface CreateParams {
 }
 
 export class GameStateClient {
-  constructor(private db: SupabaseClient<Database>) {}
+  constructor(private db: DatabaseClient) {}
 
   async create({ adventureId, questId }: CreateParams) {
     return this.db.from("game_states").insert({
