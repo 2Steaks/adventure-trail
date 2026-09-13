@@ -1,6 +1,8 @@
 "use client";
 
 import { use, useEffect } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Wizard } from "@/src/components/game/wizard/Wizard";
 import { EncounterPanel } from "@/src/components/game/encounter/EncounterPanel";
@@ -15,6 +17,7 @@ import {
   useSendChoice,
 } from "@/src/features/game/hooks";
 import {
+  didCompleteObjective,
   getCurrentQuest,
   getMapUrl,
   getWizardState,
@@ -56,7 +59,14 @@ export default function AdventureDetailPage({
     const isNotFound = error?.message === "Not found";
 
     return (
-      <main className="flex w-full flex-1 items-center justify-center p-6">
+      <main className="flex w-full flex-1 flex-col items-center justify-center gap-4 p-6">
+        <div className="w-full max-w-sm">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft /> Back
+            </Button>
+          </Link>
+        </div>
         <div className="w-full max-w-sm">
           <ErrorState
             message={error?.message ?? "Adventure not found."}
@@ -73,6 +83,14 @@ export default function AdventureDetailPage({
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
+      <div className="w-full max-w-sm">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft /> Back
+          </Button>
+        </Link>
+      </div>
+
       <div className="w-full max-w-sm border-4 border-foreground bg-card p-6 text-left">
         <h1 className="text-2xl font-black uppercase tracking-wide">
           {data.adventure.title}
@@ -182,10 +200,27 @@ export default function AdventureDetailPage({
                 disabled={sendChoice.isPending}
                 onChoose={(label) =>
                   sendChoice.mutate(label, {
-                    onSuccess: () => encounter.reset(),
+                    onSuccess: () => {
+                      // Only the "Talk to the Wizard" button re-gates a new
+                      // quest's arrival flow. If this quest isn't resolved
+                      // yet, the player is still mid-conversation at the
+                      // same landmark, so keep the wizard talking instead
+                      // of making them click the button again.
+                      if (didCompleteObjective(encounter.data)) {
+                        encounter.reset();
+                      } else {
+                        encounter.mutate();
+                      }
+                    },
                   })
                 }
-                onContinue={() => encounter.reset()}
+                onContinue={() => {
+                  if (didCompleteObjective(encounter.data)) {
+                    encounter.reset();
+                  } else {
+                    encounter.mutate();
+                  }
+                }}
               />
             )}
 

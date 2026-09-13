@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
 import { useCreateAdventure } from "@/src/features/adventures/hooks";
 import { getCurrentPosition } from "@/src/utils/geo/geolocation";
 import {
@@ -75,6 +77,14 @@ export default function NewAdventurePage() {
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-6 p-6 text-center">
+      <div className="w-full max-w-sm">
+        <Link href="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft /> Back
+          </Button>
+        </Link>
+      </div>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-sm border-4 border-foreground bg-card p-6 text-left"

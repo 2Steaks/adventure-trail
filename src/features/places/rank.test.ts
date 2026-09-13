@@ -57,6 +57,20 @@ describe("rankPlaces", () => {
     expect(result).toHaveLength(10);
   });
 
+  it("drops elements closer than the minimum distance", () => {
+    const tooClose: OverpassElement = {
+      type: "node",
+      id: 1,
+      lat: origin.latitude + 0.0001, // ~11m away
+      lon: origin.longitude,
+      tags: { name: "Right Here", tourism: "attraction" },
+    };
+
+    const result = rankPlaces(origin, [tooClose, namedNode(3)]);
+
+    expect(result.map((place) => place.name)).toEqual(["Landmark 3"]);
+  });
+
   it("handles a way element via its center point", () => {
     const way: OverpassElement = {
       type: "way",

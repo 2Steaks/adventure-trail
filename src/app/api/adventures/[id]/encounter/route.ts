@@ -67,7 +67,7 @@ export async function POST(
   // so they run concurrently rather than as two sequential round trips.
   const [questsResult, messagesResult] = await Promise.all([
     questClient.getByAdventureId(id),
-    messageClient.getRecent(id, 10),
+    messageClient.getRecent(id, currentQuestId, 10),
   ]);
 
   if (questsResult.error) {
@@ -198,6 +198,7 @@ export async function POST(
 
   const { error: messageInsertError } = await messageClient.insert({
     adventureId: id,
+    questId: currentQuestId,
     role: "assistant",
     content: output.message,
   });
