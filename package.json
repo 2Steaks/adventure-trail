@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint && tsc --noEmit",
+    "lint": "next typegen && eslint && tsc --noEmit",
     "db:types": "supabase gen types typescript --linked > src/services/supabase/supabase.database.ts",
     "test": "vitest run",
     "test:watch": "vitest"
