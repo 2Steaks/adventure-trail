@@ -11,15 +11,12 @@ import { getCurrentPosition } from "@/src/utils/geo/geolocation";
 import {
   ageRangeRefinement,
   createAdventureFields,
-  CreateAdventure
+  CreateAdventure,
 } from "@/src/features/adventures/schema";
 import { Button } from "@/src/components/ui/button";
 import { ErrorState } from "@/src/components/ui/status";
 
-type AdventureFormFields = Omit<
-  CreateAdventure,
-  "startingLat" | "startingLng"
->;
+type AdventureFormFields = Omit<CreateAdventure, "startingLat" | "startingLng">;
 
 const adventureFormSchema = createAdventureFields
   .omit({ startingLat: true, startingLng: true })
@@ -57,7 +54,7 @@ export default function NewAdventurePage() {
       setIsLocating(false);
       return;
     }
-    
+
     setIsLocating(false);
 
     createAdventure.mutate(
@@ -93,22 +90,29 @@ export default function NewAdventurePage() {
           Create Adventure
         </h1>
 
-        <label className="mt-4 block text-sm font-bold uppercase" htmlFor="theme">
+        <label
+          className="mt-4 block text-sm font-bold uppercase"
+          htmlFor="theme"
+        >
           Theme
         </label>
-        <input
+        <textarea
           id="theme"
-          type="text"
           {...register("theme")}
           className="mt-1 min-h-11 w-full border-2 border-foreground bg-background p-2"
         />
         {errors.theme && (
-          <p className="mt-1 text-sm text-destructive">{errors.theme.message}</p>
+          <p className="mt-1 text-sm text-destructive">
+            {errors.theme.message}
+          </p>
         )}
 
         <div className="mt-4 flex gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-bold uppercase" htmlFor="ageMin">
+            <label
+              className="block text-sm font-bold uppercase"
+              htmlFor="ageMin"
+            >
               Min age
             </label>
             <input
@@ -119,7 +123,10 @@ export default function NewAdventurePage() {
             />
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-bold uppercase" htmlFor="ageMax">
+            <label
+              className="block text-sm font-bold uppercase"
+              htmlFor="ageMax"
+            >
               Max age
             </label>
             <input
