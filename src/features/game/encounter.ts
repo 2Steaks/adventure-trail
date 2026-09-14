@@ -1,9 +1,9 @@
 import { generateText, Output } from "ai";
 import { EncounterError, EncounterInput } from "./encounter.types";
 import { EncounterOutput, encounterOutputSchema } from "./encounter.schema";
-import { anthropic } from "@ai-sdk/anthropic";
 import { validateEncounterActions } from "./encounter-actions";
 import { dedent, formatList } from "@/src/utils/format";
+import { anthropic } from "@/src/services/ai";
 
 function buildPrompt(input: EncounterInput, correction?: string): string {
   const completedQuests = formatList(
